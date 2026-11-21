@@ -10,7 +10,14 @@ import android.os.Build;
 
 /**
  * The notifications.  They name the state and the local proxy address only:
- * never relays, guards or traffic, which would show on the lock screen.
+ * never relays, guards or traffic.
+ *
+ * <p>They are not shown on a secure lock screen (VISIBILITY_SECRET).  Their
+ * text says that Tor is in use, and the app name Rakkyo, chosen not to say
+ * so, would not help if the lock screen did: anyone who holds the phone, at
+ * a border or at work, could read it.  VISIBILITY_PRIVATE would not be
+ * enough, since with Android's default lock screen setting ("show all
+ * notification content") private notifications are shown in full.
  */
 final class Notifications {
     static final int ID_ONGOING = 1;
@@ -31,9 +38,13 @@ final class Notifications {
                 context.getString(R.string.channel_status), NotificationManager.IMPORTANCE_LOW);
         status.setDescription(context.getString(R.string.channel_status_description));
         status.setShowBadge(false);
+        // For new installs; an existing channel keeps its settings, but
+        // each notification is VISIBILITY_SECRET anyway.
+        status.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
         final NotificationChannel alerts = new NotificationChannel(CHANNEL_ALERTS,
                 context.getString(R.string.channel_alerts), NotificationManager.IMPORTANCE_DEFAULT);
         alerts.setDescription(context.getString(R.string.channel_alerts_description));
+        alerts.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
         nm.createNotificationChannel(status);
         nm.createNotificationChannel(alerts);
     }
@@ -46,7 +57,7 @@ final class Notifications {
                 .setOngoing(true)
                 .setShowWhen(false)
                 .setCategory(Notification.CATEGORY_SERVICE)
-                .setVisibility(Notification.VISIBILITY_PUBLIC);
+                .setVisibility(Notification.VISIBILITY_SECRET);
 
         if (status.state == TorController.State.RUNNING) {
             final int title = status.dormant ? R.string.notification_dormant : R.string.notification_connected;
@@ -67,13 +78,15 @@ final class Notifications {
     }
 
     static Notification failed(Context context, TorController.Status status) {
+        final String message = Failures.message(context, status);
         return builder(context, CHANNEL_ALERTS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.notification_failed))
-                .setContentText(Failures.message(context, status))
+                .setContentText(message)
+                .setStyle(new Notification.BigTextStyle().bigText(message))
                 .setContentIntent(openApp(context))
                 .setAutoCancel(true)
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setVisibility(Notification.VISIBILITY_SECRET)
                 .build();
     }
 
