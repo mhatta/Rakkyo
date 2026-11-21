@@ -80,10 +80,10 @@
     <string name="purpose_exit_idle">出口（空き）</string>
     <string name="purpose_exit_spare">出口（予備）</string>
     <string name="purpose_directory">ディレクトリ</string>
-    <string name="purpose_internal">onion サービス用（予備）</string>
-    <string name="purpose_hsdir">onion サービスの情報を取得</string>
-    <string name="purpose_intro">onion サービスへの紹介</string>
-    <string name="purpose_onion">onion サービス</string>
+    <string name="purpose_internal">onion（予備）</string>
+    <string name="purpose_hsdir">onion（情報取得）</string>
+    <string name="purpose_intro">onion（紹介）</string>
+    <string name="purpose_onion">onion（使用中）</string>
     <string name="state_in_use">使用中</string>
     <string name="state_ready">待機</string>
     <string name="state_building">作成中</string>

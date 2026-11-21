@@ -83,10 +83,10 @@
     <string name="purpose_exit_idle">Exit · idle</string>
     <string name="purpose_exit_spare">Exit · standby</string>
     <string name="purpose_directory">Directory</string>
-    <string name="purpose_internal">For onion services (spare)</string>
-    <string name="purpose_hsdir">Onion service lookup</string>
-    <string name="purpose_intro">Onion service introduction</string>
-    <string name="purpose_onion">Onion service</string>
+    <string name="purpose_internal">Onion · standby</string>
+    <string name="purpose_hsdir">Onion · lookup</string>
+    <string name="purpose_intro">Onion · introduction</string>
+    <string name="purpose_onion">Onion · in use</string>
     <string name="state_in_use">In use</string>
     <string name="state_ready">Ready</string>
     <string name="state_building">Building</string>

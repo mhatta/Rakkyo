@@ -209,7 +209,8 @@ final class CircuitsPage extends MainActivity.Page {
                 return R.string.purpose_exit;
             }
             return c.getSecondsDirty() > 0 ? R.string.purpose_exit_idle : R.string.purpose_exit_spare;
-        case INTERNAL: return R.string.purpose_internal;
+        // Onion circuits, named like the exit ones: kind (state).
+        case INTERNAL: return R.string.purpose_internal; // built in advance, not used yet
         case ONION_SERVICE_DIRECTORY: return R.string.purpose_hsdir;
         case ONION_SERVICE_INTRODUCTION: return R.string.purpose_intro;
         case ONION_SERVICE: return R.string.purpose_onion;
