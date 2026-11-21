@@ -190,6 +190,7 @@ final class SettingsPage extends MainActivity.Page {
         final EditText edit = new EditText(activity);
         edit.setInputType(InputType.TYPE_CLASS_NUMBER);
         edit.setSingleLine();
+        UiUtil.noKeyboardLearning(edit);
         edit.setText(String.valueOf(socks ? prefs.getSocksPort() : prefs.getHttpPort()));
         edit.setSelectAllOnFocus(true);
         edit.setHint(activity.getString(R.string.port_dialog_hint, Prefs.MIN_PORT, Prefs.MAX_PORT));
@@ -235,6 +236,7 @@ final class SettingsPage extends MainActivity.Page {
         final EditText edit = new EditText(activity);
         edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        UiUtil.noKeyboardLearning(edit);
         edit.setTypeface(Typeface.MONOSPACE);
         edit.setTextSize(13);
         edit.setMinLines(3);
@@ -247,6 +249,7 @@ final class SettingsPage extends MainActivity.Page {
                 .setPositiveButton(android.R.string.ok, null)
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
+        UiUtil.secure(dialog);
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             final String text = edit.getText().toString();
             final BridgeLines.Result result = BridgeLines.parse(text);
