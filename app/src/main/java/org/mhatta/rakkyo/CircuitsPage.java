@@ -40,6 +40,7 @@ final class CircuitsPage extends MainActivity.Page {
     private final TextView empty;
     private final View guardCard;
     private final TextView guardSummary;
+    private final View guardBlocked;
     private TorController.Status status;
     private boolean shown;
     /** What the list shows now, to rebuild it only when something changed. */
@@ -62,6 +63,8 @@ final class CircuitsPage extends MainActivity.Page {
         empty = find(R.id.circuits_empty);
         guardCard = find(R.id.guard_card);
         guardSummary = find(R.id.guard_summary);
+        guardBlocked = find(R.id.guard_blocked);
+        find(R.id.guard_set_up_bridges).setOnClickListener(v -> activity.showTab(MainActivity.TAB_SETTINGS));
         find(R.id.guard_details).setOnClickListener(v ->
                 activity.startActivity(new Intent(activity, GuardsActivity.class)));
     }
@@ -140,7 +143,7 @@ final class CircuitsPage extends MainActivity.Page {
         }
     }
 
-    /** Onion service first, then the exits in use, the spare exits, the rest. */
+    /** Onion service first, then the exits in use, idle and on standby, then the rest. */
     private static final Comparator<CircuitInfo> ORDER = new Comparator<CircuitInfo>() {
         public int compare(CircuitInfo a, CircuitInfo b) {
             return rank(a) - rank(b);
@@ -149,11 +152,11 @@ final class CircuitsPage extends MainActivity.Page {
         private int rank(CircuitInfo c) {
             switch (c.getPurpose()) {
             case ONION_SERVICE: return 0;
-            case EXIT: return c.getStreamCount() > 0 ? 1 : 2;
-            case ONION_SERVICE_INTRODUCTION: return 3;
-            case ONION_SERVICE_DIRECTORY: return 4;
-            case INTERNAL: return 5;
-            default: return 6;
+            case EXIT: return c.getStreamCount() > 0 ? 1 : c.getSecondsDirty() > 0 ? 2 : 3;
+            case ONION_SERVICE_INTRODUCTION: return 4;
+            case ONION_SERVICE_DIRECTORY: return 5;
+            case INTERNAL: return 6;
+            default: return 7;
             }
         }
     };
@@ -198,7 +201,14 @@ final class CircuitsPage extends MainActivity.Page {
 
     private int purpose(CircuitInfo c) {
         switch (c.getPurpose()) {
-        case EXIT: return c.getStreamCount() > 0 ? R.string.purpose_exit : R.string.purpose_exit_spare;
+        case EXIT:
+            // In use: streams on it now.  Idle: used before (it serves its
+            // isolation group again until it is 10 minutes old).  Standby:
+            // built in advance, so that a new connection need not wait.
+            if (c.getStreamCount() > 0) {
+                return R.string.purpose_exit;
+            }
+            return c.getSecondsDirty() > 0 ? R.string.purpose_exit_idle : R.string.purpose_exit_spare;
         case INTERNAL: return R.string.purpose_internal;
         case ONION_SERVICE_DIRECTORY: return R.string.purpose_hsdir;
         case ONION_SERVICE_INTRODUCTION: return R.string.purpose_intro;
@@ -286,43 +296,54 @@ final class CircuitsPage extends MainActivity.Page {
         return sb.toString();
     }
 
+    /*
+     * One unreachable guard is normal: Tor moves on to the next one and
+     * tries it again later, so it is not shown here (the details screen
+     * has it).  What matters to the user is when none of the primary
+     * guards can be reached: the network probably blocks Tor, and bridges
+     * are the way around it.  It can also be a sign of someone pushing the
+     * client away from its guards.
+     */
     private void showGuards(List<GuardInfo> guards) {
         if (status == null || status.state != TorController.State.RUNNING) {
             return;
         }
         UiUtil.show(guardCard, true);
-        int primary = 0, unreachable = 0, unknown = 0;
+        int primary = 0, reachable = 0, unreachable = 0;
         for (GuardInfo g : guards) {
             if (!g.isPrimary()) {
                 continue;
             }
             primary++;
-            if (g.getReachability() == GuardInfo.Reachability.UNREACHABLE) {
+            if (g.getReachability() == GuardInfo.Reachability.REACHABLE) {
+                reachable++;
+            } else if (g.getReachability() == GuardInfo.Reachability.UNREACHABLE) {
                 unreachable++;
-            } else if (g.getReachability() == GuardInfo.Reachability.UNKNOWN) {
-                unknown++;
             }
         }
-        final String text;
+        final boolean bridges = status.settings != null && status.settings.useBridges;
+        final boolean blocked = !bridges && primary > 0 && unreachable == primary;
+        final int text;
         int fg = R.color.text_tertiary, bg = R.color.chip;
-        if (status.settings != null && status.settings.useBridges) {
-            text = activity.getString(R.string.guards_bridges);
+        if (bridges) {
+            text = R.string.guards_bridges;
         } else if (primary == 0) {
-            text = activity.getString(R.string.guards_none);
-        } else if (unreachable > 0) {
-            text = activity.getResources().getQuantityString(R.plurals.guards_some_unreachable, unreachable, unreachable);
+            text = R.string.guards_none;
+        } else if (blocked) {
+            text = R.string.guards_unreachable;
             fg = R.color.error;
             bg = R.color.error_soft;
-        } else if (unknown == primary) {
-            text = activity.getString(R.string.guards_unknown);
-        } else {
-            text = activity.getResources().getQuantityString(R.plurals.guards_all_reachable, primary, primary);
+        } else if (reachable > 0) {
+            text = R.string.guards_ok;
             fg = R.color.success;
             bg = R.color.success_soft;
+        } else {
+            text = R.string.guards_unknown;
         }
         guardSummary.setText(text);
         guardSummary.setTextColor(activity.getColor(fg));
         guardSummary.getBackground().mutate().setTint(activity.getColor(bg));
+        UiUtil.show(guardBlocked, blocked);
     }
 
     private String countryName(String cc) {

@@ -79,8 +79,9 @@
     <string name="circuits_subtitle">The paths in use now</string>
     <string name="circuits_not_connected">Not connected. Connect on the Home screen to see the circuits.</string>
     <string name="circuits_none">No circuits yet</string>
-    <string name="purpose_exit">Exit (Internet)</string>
-    <string name="purpose_exit_spare">Exit (spare)</string>
+    <string name="purpose_exit">Exit · in use</string>
+    <string name="purpose_exit_idle">Exit · idle</string>
+    <string name="purpose_exit_spare">Exit · standby</string>
     <string name="purpose_directory">Directory</string>
     <string name="purpose_internal">For onion services (spare)</string>
     <string name="purpose_hsdir">Onion service lookup</string>
@@ -96,11 +97,15 @@
     <string name="hop_exit">Exit</string>
     <string name="hop_rendezvous">Rendezvous</string>
     <string name="circuit_isolated">isolated</string>
-    <string name="circuit_age_new">just started</string>
-    <string name="circuit_unused">Not used yet</string>
+    <string name="circuit_age_new">first used just now</string>
+    <string name="circuit_unused">Built in advance, not used yet</string>
     <string name="circuit_onion_hidden">destination not shown</string>
     <string name="cd_path">Path</string>
     <string name="guards_heading">Entry guards</string>
+    <string name="guards_ok">Connected</string>
+    <string name="guards_unreachable">None reachable</string>
+    <string name="guards_blocked_note">None of the primary entry guards can be reached. Connections to the Tor network may be blocked on this network; bridges can get around it.</string>
+    <string name="guards_set_up_bridges">Set up bridges</string>
     <string name="guards_unknown">Not checked yet</string>
     <string name="guards_bridges">Bridges are used instead</string>
     <string name="guards_none">None yet</string>
@@ -191,19 +196,11 @@
         <item quantity="other">%d streams</item>
     </plurals>
     <plurals name="circuit_age">
-        <item quantity="one">for %d minute</item>
-        <item quantity="other">for %d minutes</item>
+        <item quantity="one">first used %d minute ago</item>
+        <item quantity="other">first used %d minutes ago</item>
     </plurals>
     <plurals name="bridge_lines_count">
         <item quantity="one">%d bridge</item>
         <item quantity="other">%d bridges</item>
-    </plurals>
-    <plurals name="guards_all_reachable">
-        <item quantity="one">Reachable</item>
-        <item quantity="other">All %d reachable</item>
-    </plurals>
-    <plurals name="guards_some_unreachable">
-        <item quantity="one">%d unreachable</item>
-        <item quantity="other">%d unreachable</item>
     </plurals>
 </resources>

@@ -72,6 +72,35 @@
                         android:layout_height="wrap_content"
                         android:textStyle="bold" />
                 </LinearLayout>
+                <!-- Shown only when no primary guard can be reached: the network
+                     probably blocks Tor, and bridges are what the user can do. -->
+                <LinearLayout
+                    android:id="@+id/guard_blocked"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_warn"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:visibility="gone">
+                    <TextView
+                        style="@style/Text.Small"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite"
+                        android:text="@string/guards_blocked_note"
+                        android:textColor="@color/warn_text" />
+                    <Button
+                        android:id="@+id/guard_set_up_bridges"
+                        style="@style/Button.Primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:minHeight="44dp"
+                        android:text="@string/guards_set_up_bridges"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
                 <TextView
                     style="@style/Text.Caption"
                     android:layout_width="match_parent"

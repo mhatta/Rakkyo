@@ -76,7 +76,8 @@
     <string name="circuits_subtitle">いま使っている経路</string>
     <string name="circuits_not_connected">接続していません。ホーム画面で接続すると回路が表示されます。</string>
     <string name="circuits_none">まだ回路がありません</string>
-    <string name="purpose_exit">出口（インターネット）</string>
+    <string name="purpose_exit">出口（使用中）</string>
+    <string name="purpose_exit_idle">出口（空き）</string>
     <string name="purpose_exit_spare">出口（予備）</string>
     <string name="purpose_directory">ディレクトリ</string>
     <string name="purpose_internal">onion サービス用（予備）</string>
@@ -94,10 +95,14 @@
     <string name="hop_rendezvous">合流点</string>
     <string name="circuit_isolated">分離あり</string>
     <string name="circuit_age_new">使い始めたばかり</string>
-    <string name="circuit_unused">まだ使っていません</string>
+    <string name="circuit_unused">事前に作った回路（未使用）</string>
     <string name="circuit_onion_hidden">接続先は表示しません</string>
     <string name="cd_path">経路</string>
     <string name="guards_heading">エントリーガード</string>
+    <string name="guards_ok">接続できています</string>
+    <string name="guards_unreachable">どれにも届きません</string>
+    <string name="guards_blocked_note">主ガードのどれにも届きません。このネットワークでは Tor ネットワークへの接続が妨げられている可能性があります。ブリッジを使うと回避できることがあります。</string>
+    <string name="guards_set_up_bridges">ブリッジを設定する</string>
     <string name="guards_unknown">まだ確かめていません</string>
     <string name="guards_bridges">ブリッジを使っています</string>
     <string name="guards_none">まだありません</string>
@@ -185,15 +190,9 @@
         <item quantity="other">ストリーム %d</item>
     </plurals>
     <plurals name="circuit_age">
-        <item quantity="other">%d分前から</item>
+        <item quantity="other">%d分前に使い始めた</item>
     </plurals>
     <plurals name="bridge_lines_count">
         <item quantity="other">%d 件</item>
-    </plurals>
-    <plurals name="guards_all_reachable">
-        <item quantity="other">%d台とも到達可能</item>
-    </plurals>
-    <plurals name="guards_some_unreachable">
-        <item quantity="other">%d台に到達できません</item>
     </plurals>
 </resources>
