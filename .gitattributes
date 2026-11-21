@@ -1,0 +1,10 @@
+# Keep LF in the working tree on every system, also in a clone made by
+# Git for Windows (core.autocrlf=true by default), so that gradlew and the
+# shell scripts keep working when the tree is shared with WSL or Linux.
+* text=auto eol=lf
+
+# Windows batch files need CRLF.
+*.bat text eol=crlf
+
+*.jar binary
+*.png binary
