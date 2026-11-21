@@ -120,19 +120,25 @@ final class TorController {
     }
 
     /*
-     * Orchid's log goes to logcat.  Orchid leaves out the destinations of
-     * streams (SafeLogging is on by default); release builds also drop the
-     * informational messages, which say what the client does and when.
+     * Orchid's log goes to logcat in debug builds only.  Orchid leaves out
+     * the destinations of streams and the addresses of guards and bridges
+     * (SafeLogging is on by default), but even its warnings say what the
+     * client does and when, and logcat can be read with adb, in bug reports
+     * and by device makers' log collection.  Release builds forward
+     * nothing; why the proxy could not start is shown in the app.
      */
     private static void installLogHandler(final boolean debuggable) {
         Logger.setHandler(new LogHandler() {
             public void log(SysLog level, String name, String message, Throwable throwable) {
+                if (!debuggable) {
+                    return;
+                }
                 final String text = name + ": " + message;
                 if (level.isGreaterOrEqual(SysLog.ERROR)) {
                     Log.e(TAG, text, throwable);
                 } else if (level.isGreaterOrEqual(SysLog.WARNING)) {
                     Log.w(TAG, text, throwable);
-                } else if (debuggable && level.isGreaterOrEqual(SysLog.INFORMATIONAL)) {
+                } else if (level.isGreaterOrEqual(SysLog.INFORMATIONAL)) {
                     Log.i(TAG, text, throwable);
                 }
             }
