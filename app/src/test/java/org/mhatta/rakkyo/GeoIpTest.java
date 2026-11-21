@@ -44,6 +44,22 @@ public class GeoIpTest {
     }
 
     @Test
+    public void parsesTheHeaderDateWhateverTheDefaultLocale() {
+        final Locale saved = Locale.getDefault();
+        try {
+            for (Locale l : new Locale[] { Locale.JAPAN, Locale.GERMANY, Locale.ROOT }) {
+                Locale.setDefault(l);
+                final Date d = GeoIp.parseGenerated("Thu, 25 Jun 2026 04:33:59 GMT");
+                assertNotNull("Not parsed with the default locale " + l, d);
+                assertEquals(1782362039000L, d.getTime());
+            }
+        } finally {
+            Locale.setDefault(saved);
+        }
+        assertEquals(null, GeoIp.parseGenerated("not a date"));
+    }
+
+    @Test
     public void bundledDatabaseIsComplete() throws IOException {
         final InputStream in = GeoIp.class.getResourceAsStream(GeoIp.RESOURCE);
         assertNotNull("geoip is not on the classpath", in);
