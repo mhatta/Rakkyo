@@ -3,8 +3,9 @@
 # shell scripts keep working when the tree is shared with WSL or Linux.
 * text=auto eol=lf
 
-# Windows batch files need CRLF.
-*.bat text eol=crlf
+# Windows batch files keep the CRLF they are committed with; not treated
+# as text, so that Git does not convert them.
+*.bat -text
 
 *.jar binary
 *.png binary
