@@ -63,7 +63,7 @@
     <string name="view_circuits">View circuits</string>
     <string name="guide_link_title">Using it from other apps</string>
     <string name="guide_link_summary">Browser and Wi-Fi proxy settings</string>
-    <string name="failed_port">Port %d is used by another app. Choose another port in Settings.</string>
+    <string name="failed_port">Another app is listening on port %d. Apps set to use this port may be sending their traffic to that app, not through Tor: stop them, then choose another port in Settings.</string>
     <string name="failed_bridges">The bridge settings cannot be used. Check them in Settings.</string>
     <string name="failed_other">Orchid could not start. Please try again.</string>
     <string name="channel_status">Connection status</string>
@@ -177,7 +177,7 @@
     <string name="guide_socks_body">Set the host to %1$s and the port to %2$d. If there is an option to resolve host names through the proxy, turn it on.</string>
     <string name="guide_socks_password">A password is set: enter any user name, and the password copied from the Home screen.</string>
     <string name="guide_http_title">Wi-Fi proxy setting (HTTP)</string>
-    <string name="guide_http_body">In Settings › Network › Wi-Fi › your network › Proxy, choose Manual and enter %1$s as the host name and %2$d as the port. It does not apply to mobile data. Only https:// sites go through it.</string>
+    <string name="guide_http_body">In Settings › Network › Wi-Fi › your network › Proxy, choose Manual and enter %1$s as the host name and %2$d as the port. Only https:// sites go through it. On mobile data or other Wi-Fi networks, apps connect directly, without Tor, and some apps ignore the setting.</string>
     <string name="guide_http_off">HTTP CONNECT is off. Turn it on in Settings to use this.</string>
     <string name="guide_http_password">With a password set, the Wi-Fi proxy setting cannot be used, since it cannot send one.</string>
     <string name="guide_warning_title">To browse the web anonymously</string>

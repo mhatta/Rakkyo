@@ -60,7 +60,7 @@
     <string name="view_circuits">回路を見る</string>
     <string name="guide_link_title">ほかのアプリから使うには</string>
     <string name="guide_link_summary">ブラウザや Wi-Fi のプロキシ設定の方法</string>
-    <string name="failed_port">ポート %d はほかのアプリが使っています。設定で別のポートを選んでください。</string>
+    <string name="failed_port">ポート %d でほかのアプリが待ち受けています。このポートを設定したアプリは、Tor ではなくそのアプリに通信を送っているおそれがあります。それらのアプリを止めてから、設定で別のポートを選んでください。</string>
     <string name="failed_bridges">ブリッジの設定が使えません。設定を確かめてください。</string>
     <string name="failed_other">Orchid を開始できませんでした。もう一度お試しください。</string>
     <string name="channel_status">接続の状態</string>
@@ -174,7 +174,7 @@
     <string name="guide_socks_body">ホスト %1$s、ポート %2$d を設定します。名前の解決をプロキシに任せる設定があれば有効にしてください。</string>
     <string name="guide_socks_password">パスワードを設定しています。ユーザー名は自由で、パスワードはホーム画面からコピーしてください。</string>
     <string name="guide_http_title">Wi-Fi のプロキシ設定（HTTP）</string>
-    <string name="guide_http_body">設定 › ネットワーク › Wi-Fi › 使っているネットワーク › プロキシで「手動」を選び、ホスト名 %1$s、ポート %2$d を入れます。モバイルデータには効きません。通るのは https:// のサイトだけです。</string>
+    <string name="guide_http_body">設定 › ネットワーク › Wi-Fi › 使っているネットワーク › プロキシで「手動」を選び、ホスト名 %1$s、ポート %2$d を入れます。通るのは https:// のサイトだけです。モバイルデータやほかの Wi-Fi では Tor を通らずに直接つながり、この設定を無視するアプリもあります。</string>
     <string name="guide_http_off">HTTP CONNECT がオフです。使うには設定でオンにしてください。</string>
     <string name="guide_http_password">パスワードを設定していると、Wi-Fi のプロキシ設定からは使えません（パスワードを送れないため）。</string>
     <string name="guide_warning_title">匿名でウェブを見るには</string>
