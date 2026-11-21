@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The title of a screen opened from a tab, with a back button. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="8dp">
+    <ImageButton
+        android:id="@+id/header_back"
+        style="@style/IconButton"
+        android:contentDescription="@string/cd_back"
+        android:src="@drawable/ic_back" />
+    <TextView
+        android:id="@+id/header_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_weight="1"
+        android:accessibilityHeading="true"
+        android:textColor="@color/text"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+</LinearLayout>

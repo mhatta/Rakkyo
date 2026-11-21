@@ -1,0 +1,18 @@
+<p>Rakkyo は、端末の中でプロキシを動かし、ほかのアプリの通信を Tor™ ネットワーク経由にします。SOCKS5 のプロキシに対応したアプリや、Android の Wi-Fi のプロキシ設定（HTTP CONNECT）から使えます。</p>
+
+<p>Java で書かれた Tor クライアント <a href="https://github.com/mhatta/Orchid">Orchid</a> を使っています。ネイティブコードも root も不要で、VPN の枠も使いません。</p>
+
+<ul>
+<li>127.0.0.1 の SOCKS5 プロキシ（既定のポートは 9150）と HTTP CONNECT プロキシ（8118）</li>
+<li>ランダムなパスワードを設定でき、渡したアプリだけが接続できます</li>
+<li>接続先のホストごとに回路を分けられます（IsolateDestAddr）</li>
+<li>新しいID：それ以降の接続には新しい回路を使います</li>
+<li>使っている回路と、各リレーの国を表示します。国の判定データはアプリに同梱し、端末の中だけで使います</li>
+<li>使っていない間は休止して電池を節約します</li>
+<li>通常のブリッジに対応（Pluggable Transport はまだ使えません）</li>
+<li>日本語と英語</li>
+</ul>
+
+<p>プロキシを通しても、普通のブラウザは指紋や WebRTC、Cookie から身元がわかることがあります。匿名で閲覧したいときは Tor Browser を使ってください。</p>
+
+<p>「Tor」は The Tor Project の商標です。All Rights Reserved. 本製品は The Tor Project による承認・後援を受けたものではなく、同プロジェクトと提携関係にもありません。Rakkyo は Tor のソフトウェアを含まず、Tor プロトコルを独自に実装した Orchid を使っています。公式の Tor ソフトウェアは <a href="https://www.torproject.org/">torproject.org</a> から入手できます。</p>

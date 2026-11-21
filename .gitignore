@@ -1,0 +1,11 @@
+.gradle/
+build/
+/local.properties
+/captures/
+.idea/
+*.iml
+.DS_Store
+# Signing keys and their passwords never go into the repository.
+*.jks
+*.keystore
+keystore.properties

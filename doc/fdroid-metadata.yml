@@ -1,0 +1,30 @@
+# Draft of metadata/org.mhatta.rakkyo.yml for a merge request to
+# https://gitlab.com/fdroid/fdroiddata (check it with `fdroid lint` and
+# `fdroid build -v -l org.mhatta.rakkyo` before sending).
+Categories:
+  - Internet
+  - Security
+License: BSD-3-Clause
+AuthorName: Masayuki Hatta
+AuthorEmail: mhatta@mhatta.org
+SourceCode: https://github.com/mhatta/Rakkyo
+IssueTracker: https://github.com/mhatta/Rakkyo/issues
+Changelog: https://github.com/mhatta/Rakkyo/blob/master/CHANGELOG.md
+
+AutoName: Rakkyo
+
+RepoType: git
+Repo: https://github.com/mhatta/Rakkyo.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

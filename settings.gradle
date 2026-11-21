@@ -1,0 +1,33 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'Rakkyo'
+include ':app'
+
+// To work on Orchid and Rakkyo together, build Orchid from a local checkout
+// instead of taking org.mhatta:orchid from Maven Central:
+//
+//     ./gradlew -Porchid.dir=../Orchid assembleDebug
+//
+// Releases, and the F-Droid build, use the published Orchid.
+def orchidDir = providers.gradleProperty('orchid.dir').orNull
+if (orchidDir) {
+    includeBuild(orchidDir) {
+        dependencySubstitution {
+            substitute module('org.mhatta:orchid') using project(':')
+        }
+    }
+}

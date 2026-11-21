@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/page_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_nav"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="6dp">
+
+        <LinearLayout
+            android:id="@+id/tab_home"
+            style="@style/NavTab">
+            <ImageView
+                android:id="@+id/tab_home_icon"
+                style="@style/NavTabIcon"
+                android:src="@drawable/ic_home" />
+            <TextView
+                android:id="@+id/tab_home_label"
+                style="@style/NavTabLabel"
+                android:text="@string/tab_home" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tab_circuits"
+            style="@style/NavTab">
+            <ImageView
+                android:id="@+id/tab_circuits_icon"
+                style="@style/NavTabIcon"
+                android:src="@drawable/ic_circuits" />
+            <TextView
+                android:id="@+id/tab_circuits_label"
+                style="@style/NavTabLabel"
+                android:text="@string/tab_circuits" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tab_settings"
+            style="@style/NavTab">
+            <ImageView
+                android:id="@+id/tab_settings_icon"
+                style="@style/NavTabIcon"
+                android:src="@drawable/ic_sliders" />
+            <TextView
+                android:id="@+id/tab_settings_label"
+                style="@style/NavTabLabel"
+                android:text="@string/tab_settings" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

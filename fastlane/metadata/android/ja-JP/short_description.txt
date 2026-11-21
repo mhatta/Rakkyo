@@ -1,0 +1,1 @@
+Tor ネットワークを経由する SOCKS5 / HTTP プロキシ（純 Java 実装）

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The palette of the mock-up, with blue instead of its purple (kept apart from the
+     Tor onion logo).  values-night/colors.xml has the dark one. -->
+<resources>
+    <color name="bg">#F7F6F9</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="text">#1C1A22</color>
+    <color name="text_secondary">#5B5866</color>
+    <color name="text_tertiary">#3D3A45</color>
+    <color name="text_muted">#6B6877</color>
+    <color name="chip">#EFEDF3</color>
+    <color name="divider">#EFEDF3</color>
+    <color name="border">#DCD8E3</color>
+    <color name="nav_border">#E6E3EC</color>
+    <color name="accent">#1D4ED8</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="accent_soft">#EEF3FD</color>
+    <color name="accent_ring">#C9D7F8</color>
+    <color name="success">#0F766E</color>
+    <color name="success_soft">#E6F4F1</color>
+    <color name="off_ring">#C9C5D1</color>
+    <color name="error">#B3261E</color>
+    <color name="error_soft">#FCEEEE</color>
+    <color name="warn_bg">#FFF7E8</color>
+    <color name="warn_text">#5C3700</color>
+    <color name="warn_icon">#8A5300</color>
+    <color name="switch_off">#8A8595</color>
+    <color name="launcher_bg">#1D4ED8</color>
+</resources>

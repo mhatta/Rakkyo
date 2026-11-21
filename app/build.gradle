@@ -1,0 +1,56 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'org.mhatta.rakkyo'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'org.mhatta.rakkyo'
+        // Orchid's minimum (X509ExtendedTrustManager, endpoint identification)
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    androidResources {
+        // Writes the per-app language list (Android 13+) from the values-*
+        // directories; the default strings are English (res/resources.properties).
+        generateLocaleConfig true
+    }
+
+    buildTypes {
+        release {
+            // Kept off for now: it makes the release easier to reproduce
+            // (F-Droid) and to compare with the source.  The app has no
+            // dependency but Orchid, so shrinking would save little.
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        // Every string must be translated: a missing Japanese string is an
+        // error, not a fallback to English.
+        error 'MissingTranslation'
+        abortOnError true
+    }
+
+    dependenciesInfo {
+        // No signing block of Google's in the APK (F-Droid asks for this).
+        includeInApk false
+        includeInBundle false
+    }
+}
+
+dependencies {
+    implementation 'org.mhatta:orchid:2.8.0'
+
+    testImplementation 'junit:junit:4.13.2'
+}

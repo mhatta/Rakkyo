@@ -1,0 +1,18 @@
+<p>Rakkyo runs a proxy on your device that sends the connections of other apps through the Tor™ network. Apps that support a SOCKS5 proxy, and the Wi-Fi proxy setting of Android (HTTP CONNECT), can use it.</p>
+
+<p>Rakkyo is built on <a href="https://github.com/mhatta/Orchid">Orchid</a>, a Tor client written in Java. It needs no native code, no root and no VPN slot.</p>
+
+<ul>
+<li>SOCKS5 proxy on 127.0.0.1 (port 9150 by default) and HTTP CONNECT proxy (port 8118)</li>
+<li>Optional random password, so that only the apps you give it to can connect</li>
+<li>Separate circuits per destination host (IsolateDestAddr)</li>
+<li>New identity: new circuits for everything opened from then on</li>
+<li>Shows the circuits in use with the countries of their relays, from a GeoIP database bundled with the app and used only on the device</li>
+<li>Rests when unused (dormant mode) to save battery</li>
+<li>Plain bridges; pluggable transports are not supported yet</li>
+<li>English and Japanese</li>
+</ul>
+
+<p>A proxy does not make an ordinary browser anonymous: its fingerprint, WebRTC and cookies can still identify you. To browse anonymously, use Tor Browser.</p>
+
+<p>"Tor" is a trademark of The Tor Project; all rights reserved. This product is not endorsed or sponsored by, or affiliated with, the Tor Project. Rakkyo contains no Tor software: it uses Orchid, an independent implementation of the Tor protocol. The official Tor software is available at <a href="https://www.torproject.org/">torproject.org</a>.</p>
