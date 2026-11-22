@@ -52,6 +52,48 @@ status=0
 ./gradlew --no-daemon --continue --rerun-tasks --write-verification-metadata pgp,sha256 --export-keys $tasks || status=$?
 rm -f gradle/verification-keyring.gpg
 
+# aapt2: the Android Gradle plugin resolves it in a configuration of its
+# own while a task runs, and Gradle does not record it, so the build that
+# needs it fails verification (also on CI).  Add its checksums here, for
+# the jars of Linux, Windows and macOS (Android Studio on any of them),
+# taken from Google's Maven repository, and check the Linux one against
+# the copy that the build above downloaded.
+GOOGLE=https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2
+for dir in "${GRADLE_USER_HOME:-$HOME/.gradle}"/caches/modules-2/files-2.1/com.android.tools.build/aapt2/*/; do
+    [ -d "$dir" ] || continue
+    v=$(basename "$dir")
+    if grep -q "name=\"aapt2\" version=\"$v\"" "$META"; then
+        continue
+    fi
+    echo "== Adding aapt2 $v"
+    tmp=$(mktemp -d)
+    for f in "aapt2-$v.pom" "aapt2-$v-linux.jar" "aapt2-$v-windows.jar" "aapt2-$v-osx.jar"; do
+        curl -sfL -o "$tmp/$f" "$GOOGLE/$v/$f" || { echo "ERROR: cannot download $f" >&2; exit 1; }
+    done
+    cached=$(find "$dir" -name "aapt2-$v-linux.jar" | head -1)
+    if [ -n "$cached" ] && [ "$(sha256sum < "$cached")" != "$(sha256sum < "$tmp/aapt2-$v-linux.jar")" ]; then
+        echo "ERROR: aapt2-$v-linux.jar differs between two downloads; do not trust either." >&2
+        exit 1
+    fi
+    python3 -I - "$META" "$v" "$tmp" <<'PY'
+import hashlib, os, sys
+meta, v, tmp = sys.argv[1:]
+lines = ['      <component group="com.android.tools.build" name="aapt2" version="%s">' % v]
+for f in sorted(os.listdir(tmp)):
+    digest = hashlib.sha256(open(os.path.join(tmp, f), "rb").read()).hexdigest()
+    lines += ['         <artifact name="%s">' % f,
+              '            <sha256 value="%s" origin="Google Maven, by tools/update-verification-metadata.sh"/>' % digest,
+              '         </artifact>']
+lines.append('      </component>')
+s = open(meta, encoding="utf-8").read()
+if "</components>" not in s:
+    sys.exit("no </components> in " + meta)
+s = s.replace("   </components>", "\n".join(lines) + "\n   </components>", 1)
+open(meta, "w", encoding="utf-8").write(s)
+PY
+    rm -rf "$tmp"
+done
+
 echo
 echo "== New or changed trusted keys (check each against the dependency it is for)"
 diff "$before" "$META" | grep '^>.*trusted-key\|^>.*<trusting' || echo "(none)"

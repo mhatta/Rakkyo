@@ -76,14 +76,14 @@ It lists the keys and components that are new, and checks that Orchid is
 still trusted by its key alone.  It downloads everything, which takes a
 few minutes.
 
-aapt2 comes in one jar for each system.  To build in Android Studio on
-Windows, add the Windows one once, from a Windows command prompt:
+Gradle does not record aapt2, which the Android Gradle plugin fetches in
+a configuration of its own: the script adds its checksums itself, for
+the jars of Linux, Windows and macOS (so that Android Studio works on
+each), from Google's Maven repository, after checking the Linux one
+against the copy the build downloaded.
 
-```bat
-gradlew.bat --no-daemon --rerun-tasks --write-verification-metadata sha256 assembleDebug
-```
-  Gradle trusts whatever it downloads at that moment, so read
-the list: a new key or group should be one that the change explains.
+Gradle trusts whatever it downloads at that moment, so read the list: a
+new key or group should be one that the change explains.
 When a build fails verification, `build/reports/dependency-verification/`
 says which artifact did not match (CI keeps it as an artifact).
 Do not work around a failure with `--dependency-verification=off` or
