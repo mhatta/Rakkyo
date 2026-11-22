@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -41,7 +42,9 @@ final class SettingsPage extends MainActivity.Page {
     private final LayoutInflater inflater;
     private TorController.Status status;
 
-    private Row socksPort, http, httpPort, password, regenerate, isolate, bridges, bridgeLines, boot, battery, geoip;
+    private Row socksPort, http, httpPort, isolate, bridges, bridgeLines, boot, battery, geoip;
+    /** The Apps section, rebuilt by refresh(): the password switch, a row per profile, "Add an app". */
+    private ViewGroup apps;
 
     SettingsPage(final MainActivity activity) {
         super(activity, R.layout.page_settings);
@@ -78,24 +81,8 @@ final class SettingsPage extends MainActivity.Page {
         });
         httpPort = row(section, R.string.setting_http_port);
         httpPort.onClick(v -> askPort(false));
-        password = row(section, R.string.setting_password);
-        password.summary(activity.getString(R.string.setting_password_summary));
-        password.segment(R.string.password_option_none, R.string.password_option_random, random -> {
-            if (random) {
-                prefs.usePassword();
-            } else {
-                prefs.clearPassword();
-            }
-            refresh();
-        });
-        regenerate = row(section, R.string.setting_password_regenerate);
-        regenerate.summary(activity.getString(R.string.setting_password_regenerate_summary));
-        regenerate.chevron();
-        regenerate.onClick(v -> {
-            prefs.usePassword();
-            refresh();
-            Toast.makeText(activity, R.string.setting_password_regenerate, Toast.LENGTH_SHORT).show();
-        });
+
+        apps = section(R.string.section_apps);
 
         section = section(R.string.section_privacy);
         isolate = row(section, R.string.setting_isolate);
@@ -153,9 +140,7 @@ final class SettingsPage extends MainActivity.Page {
         http.summary(activity.getString(R.string.setting_http_summary, prefs.getHttpPort()));
         httpPort.value(String.valueOf(prefs.getHttpPort()));
         httpPort.visible(httpOn);
-        final boolean random = prefs.getPassword() != null;
-        password.selected(random);
-        regenerate.visible(random);
+        refreshApps();
         isolate.checked(prefs.isIsolateDest());
         bridges.checked(prefs.isUseBridges());
         final int n = BridgeLines.parse(prefs.getBridges()).bridges.size();
@@ -165,6 +150,146 @@ final class SettingsPage extends MainActivity.Page {
         boot.checked(prefs.isStartOnBoot());
         battery.visible(!isIgnoringBatteryOptimizations());
         updateBanner();
+    }
+
+    /* The Apps section: whether a password is required, and the profiles. */
+    private void refreshApps() {
+        apps.removeAllViews();
+        final List<Profiles.Profile> profiles = prefs.getProfiles();
+        final boolean required = !profiles.isEmpty();
+        final Row require = row(apps, R.string.setting_require_password);
+        require.summary(activity.getString(required ? R.string.setting_require_password_on
+                : R.string.setting_require_password_off));
+        require.toggle(on -> {
+            if (on) {
+                prefs.setPasswordRequired(true, activity.getString(R.string.profile_default_name));
+                refresh();
+            } else {
+                confirmNoPassword();
+            }
+        });
+        require.checked(required);
+        for (final Profiles.Profile p : profiles) {
+            final Row r = row(apps, 0);
+            r.title.setText(p.name);
+            r.chevron();
+            r.onClick(v -> showProfile(p.name));
+        }
+        if (required && profiles.size() < Profiles.MAX) {
+            final Row add = row(apps, R.string.profile_add);
+            add.summary(activity.getString(R.string.profile_add_summary));
+            add.chevron();
+            add.onClick(v -> askProfileName());
+        }
+    }
+
+    /* Turning the password off lets every app on the device use the proxy: say so first. */
+    private void confirmNoPassword() {
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.no_password_title)
+                .setMessage(R.string.no_password_message)
+                .setPositiveButton(R.string.no_password_confirm, (d, w) -> {
+                    prefs.setPasswordRequired(false, null);
+                    refresh();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .setOnDismissListener(d -> refresh())
+                .show();
+    }
+
+    private void askProfileName() {
+        final EditText edit = new EditText(activity);
+        edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        edit.setSingleLine();
+        edit.setHint(R.string.profile_name_hint);
+        final AlertDialog dialog = new AlertDialog.Builder(activity)
+                .setTitle(R.string.profile_add)
+                .setMessage(R.string.profile_add_message)
+                .setView(padded(edit))
+                .setPositiveButton(android.R.string.ok, null)
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        dialog.setOnShowListener(d -> {
+            edit.requestFocus();
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                final String name = edit.getText().toString().trim();
+                final Profiles.NameProblem problem = Profiles.checkName(name, prefs.getProfiles());
+                if (problem != null) {
+                    edit.setError(nameProblem(problem));
+                    return;
+                }
+                final Profiles.Profile p = prefs.addProfile(name);
+                dialog.dismiss();
+                refresh();
+                UiUtil.copy(activity, activity.getString(R.string.clip_label_password), p.password, true);
+                Toast.makeText(activity, activity.getString(R.string.profile_added, p.name), Toast.LENGTH_LONG).show();
+            });
+        });
+        dialog.show();
+    }
+
+    private String nameProblem(Profiles.NameProblem problem) {
+        switch (problem) {
+        case TOO_LONG: return activity.getString(R.string.profile_name_too_long, Profiles.MAX_NAME);
+        case TAKEN: return activity.getString(R.string.profile_name_taken);
+        case CONTROL: return activity.getString(R.string.profile_name_invalid);
+        default: return activity.getString(R.string.profile_name_empty);
+        }
+    }
+
+    /* One profile: copy its password, make a new one, or delete it. */
+    private void showProfile(final String name) {
+        final Profiles.Profile p = Profiles.find(prefs.getProfiles(), name);
+        if (p == null) {
+            refresh();
+            return;
+        }
+        final String[] items = {
+            activity.getString(R.string.profile_copy),
+            activity.getString(R.string.profile_renew),
+            activity.getString(R.string.profile_delete),
+        };
+        new AlertDialog.Builder(activity)
+                .setTitle(p.name)
+                .setItems(items, (d, which) -> {
+                    switch (which) {
+                    case 0:
+                        UiUtil.copy(activity, activity.getString(R.string.clip_label_password), p.password, true);
+                        break;
+                    case 1:
+                        confirm(R.string.profile_renew, activity.getString(R.string.profile_renew_message, p.name), () -> {
+                            prefs.renewPassword(p.name);
+                            refresh();
+                            final Profiles.Profile renewed = Profiles.find(prefs.getProfiles(), p.name);
+                            if (renewed != null) {
+                                UiUtil.copy(activity, activity.getString(R.string.clip_label_password), renewed.password, true);
+                            }
+                        });
+                        break;
+                    default:
+                        if (prefs.getProfiles().size() == 1) {
+                            // The last one: deleting it would turn the password off.
+                            confirmNoPassword();
+                        } else {
+                            confirm(R.string.profile_delete, activity.getString(R.string.profile_delete_message, p.name), () -> {
+                                prefs.removeProfile(p.name);
+                                refresh();
+                            });
+                        }
+                        break;
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void confirm(int title, String message, Runnable action) {
+        new AlertDialog.Builder(activity)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, (d, w) -> action.run())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void updateBanner() {
@@ -178,7 +303,7 @@ final class SettingsPage extends MainActivity.Page {
 
     private static boolean differs(Prefs.Snapshot a, Prefs.Snapshot b) {
         return a.socksPort != b.socksPort || a.httpPort != b.httpPort
-                || !equal(a.password, b.password) || a.isolateDest != b.isolateDest
+                || !a.passwords.equals(b.passwords) || a.isolateDest != b.isolateDest
                 || a.useBridges != b.useBridges || (a.useBridges && !equal(a.bridges, b.bridges));
     }
 
@@ -363,7 +488,9 @@ final class SettingsPage extends MainActivity.Page {
         final View v = inflater.inflate(R.layout.item_setting_row, section, false);
         section.addView(v);
         final Row row = new Row(v);
-        row.title.setText(title);
+        if (title != 0) {
+            row.title.setText(title);
+        }
         return row;
     }
 

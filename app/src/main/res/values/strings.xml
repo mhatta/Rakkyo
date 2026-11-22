@@ -52,8 +52,8 @@
     <string name="cd_copy_socks">Copy the SOCKS5 address</string>
     <string name="cd_copy_http">Copy the HTTP address</string>
     <string name="cd_copy_password">Copy the password</string>
-    <string name="password_none">Password: none (you can change this in Settings)</string>
-    <string name="password_set">Password: set (any user name works)</string>
+    <string name="password_none">Password: none. Any app on this device can use the proxy.</string>
+    <string name="password_set">Password: required (any user name works)</string>
     <string name="copied">Copied</string>
     <string name="clip_label_address">Proxy address</string>
     <string name="clip_label_password">Proxy password</string>
@@ -135,12 +135,6 @@
     <string name="setting_http">HTTP CONNECT</string>
     <string name="setting_http_summary">For the Wi-Fi proxy setting and similar (port %d)</string>
     <string name="setting_http_port">HTTP CONNECT port</string>
-    <string name="setting_password">Password</string>
-    <string name="setting_password_summary">Most apps cannot send a password</string>
-    <string name="password_option_none">None</string>
-    <string name="password_option_random">Random</string>
-    <string name="setting_password_regenerate">Make a new password</string>
-    <string name="setting_password_regenerate_summary">Apps given the old one can no longer connect</string>
     <string name="setting_isolate">Separate circuits per destination</string>
     <string name="setting_isolate_summary">Makes sites harder to link together. More circuits are built, and the first connection to a site takes a few seconds longer.</string>
     <string name="setting_bridges">Use bridges</string>
@@ -175,7 +169,7 @@
     <string name="guide_intro">Enter one of these in the app\'s proxy settings. Both can be used only from this device.</string>
     <string name="guide_socks_title">Apps that support SOCKS5</string>
     <string name="guide_socks_body">Set the host to %1$s and the port to %2$d. If there is an option to resolve host names through the proxy, turn it on.</string>
-    <string name="guide_socks_password">A password is set: enter any user name, and the password copied from the Home screen.</string>
+    <string name="guide_socks_password">A password is required: enter any user name, and the password of the app, copied from Settings › Apps.</string>
     <string name="guide_http_title">Wi-Fi proxy setting (HTTP)</string>
     <string name="guide_http_body">In Settings › Network › Wi-Fi › your network › Proxy, choose Manual and enter %1$s as the host name and %2$d as the port. Only https:// sites go through it. On mobile data or other Wi-Fi networks, apps connect directly, without Tor, and some apps ignore the setting.</string>
     <string name="guide_http_off">HTTP CONNECT is off. Turn it on in Settings to use this.</string>
@@ -202,5 +196,31 @@
     <plurals name="bridge_lines_count">
         <item quantity="one">%d bridge</item>
         <item quantity="other">%d bridges</item>
+    </plurals>
+    <string name="section_apps">Apps</string>
+    <string name="setting_require_password">Require a password</string>
+    <string name="setting_require_password_on">Each app below has a password of its own, and circuits that no other app shares.</string>
+    <string name="setting_require_password_off">Off: any app on this device can use the proxy, and can tell that you use Tor.</string>
+    <string name="profile_default_name">Default</string>
+    <string name="profile_add">Add an app</string>
+    <string name="profile_add_summary">A new password, for one more app</string>
+    <string name="profile_add_message">A name for the app that will use this password, such as Firefox. The password is copied for you to paste into the app\'s proxy settings.</string>
+    <string name="profile_name_hint">App name</string>
+    <string name="profile_name_empty">Enter a name.</string>
+    <string name="profile_name_too_long">At most %d characters.</string>
+    <string name="profile_name_taken">That name is already used.</string>
+    <string name="profile_name_invalid">The name cannot contain control characters.</string>
+    <string name="profile_added">Password for %s copied. Paste it into the app\'s proxy settings, with any user name.</string>
+    <string name="profile_copy">Copy the password</string>
+    <string name="profile_renew">Make a new password</string>
+    <string name="profile_renew_message">%s can no longer connect with its current password until it is given the new one.</string>
+    <string name="profile_delete">Delete</string>
+    <string name="profile_delete_message">%s can no longer connect.</string>
+    <string name="no_password_title">Turn off the password?</string>
+    <string name="no_password_message">Every app on this device, including ones you did not set up, will be able to use the proxy and its circuits, and to tell that you use Tor. Turn it off only if an app you need cannot send a password, such as the Wi-Fi proxy setting.</string>
+    <string name="no_password_confirm">Turn off</string>
+    <plurals name="password_profiles">
+        <item quantity="one">Password: required, for %d app (any user name works)</item>
+        <item quantity="other">Passwords: one for each of %d apps (any user name works)</item>
     </plurals>
 </resources>

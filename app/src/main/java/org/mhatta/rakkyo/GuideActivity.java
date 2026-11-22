@@ -28,7 +28,7 @@ public final class GuideActivity extends Activity {
         // The ports as they are set now, which is what the user will enter.
         final Prefs prefs = new Prefs(this);
         final String host = TorController.LISTEN_ADDRESS;
-        final boolean password = prefs.getPassword() != null;
+        final boolean password = prefs.isPasswordRequired();
         ((TextView) findViewById(R.id.guide_socks_body)).setText(getString(R.string.guide_socks_body, host, prefs.getSocksPort()));
         UiUtil.show(findViewById(R.id.guide_socks_password), password);
         final TextView http = findViewById(R.id.guide_http_body);

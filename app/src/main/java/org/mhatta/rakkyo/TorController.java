@@ -236,7 +236,8 @@ final class TorController {
         final TorConfig config = c.getConfig();
         config.setDataDirectory(new File(context.getNoBackupFilesDir(), "orchid"));
         config.setSocksListenAddress(LISTEN_ADDRESS);
-        config.setSocksPassword(settings.password);
+        // One password per profile, or none: see Profiles.
+        config.setSocksPasswords(settings.passwords);
         config.setIsolateDestAddr(settings.isolateDest);
         // An hour without use and Orchid rests; the next connection wakes it.
         config.setDormantClientTimeout(1, TimeUnit.HOURS);

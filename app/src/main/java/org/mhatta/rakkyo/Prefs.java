@@ -1,12 +1,14 @@
 package org.mhatta.rakkyo;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * The user's settings.  They are read when Orchid starts, so that a change
- * takes effect at the next connection ("Changes apply from the next
- * connection" on the settings screen).
+ * The user's settings.  Orchid is started with a {@link Snapshot} of them.
  *
  * The shared preferences live in the app's private storage and are kept out
  * of backups and device transfers (res/xml/data_extraction_rules.xml).
@@ -22,18 +24,76 @@ final class Prefs {
     private static final String SOCKS_PORT = "socks_port";
     private static final String HTTP_ENABLED = "http_enabled";
     private static final String HTTP_PORT = "http_port";
+    /** 1.0's single password; moved to a profile by {@link #migrate}. */
     private static final String PASSWORD = "password";
+    private static final String PROFILES = "profiles";
     private static final String ISOLATE_DEST = "isolate_dest";
     private static final String USE_BRIDGES = "use_bridges";
     private static final String BRIDGES = "bridges";
     private static final String START_ON_BOOT = "start_on_boot";
     private static final String WANTS_RUNNING = "wants_running";
     private static final String ASKED_NOTIFICATIONS = "asked_notifications";
+    private static final String ONBOARDED = "onboarded";
+    /** The version of the stored settings: absent in 1.0, 2 from 1.1. */
+    private static final String SCHEMA = "schema";
+    private static final int CURRENT_SCHEMA = 2;
+    private static final Object MIGRATION = new Object();
 
     private final SharedPreferences sp;
 
     Prefs(Context context) {
         sp = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        if (sp.getInt(SCHEMA, 0) < CURRENT_SCHEMA) {
+            migrate(context.getApplicationContext());
+        }
+    }
+
+    /*
+     * 1.1 changed the defaults: a password is required (one profile is
+     * made for a new install) and the HTTP CONNECT port is off, so that
+     * other apps on the device can neither use the proxy nor tell from it
+     * that Tor is in use.  Settings of 1.0 are kept as they were, so that
+     * an update does not cut off the apps already set up: its single
+     * password becomes a profile, and the HTTP port stays on unless it was
+     * turned off.  The first-run choice is only for new installs.
+     */
+    private void migrate(Context context) {
+        synchronized (MIGRATION) {
+            if (sp.getInt(SCHEMA, 0) >= CURRENT_SCHEMA) {
+                return;
+            }
+            final String name = context.getString(R.string.profile_default_name);
+            final SharedPreferences.Editor e = sp.edit();
+            if (isFrom10()) {
+                if (!sp.contains(HTTP_ENABLED)) {
+                    e.putBoolean(HTTP_ENABLED, true);
+                }
+                final String old = sp.getString(PASSWORD, null);
+                if (Passwords.isPlausible(old)) {
+                    e.putString(PROFILES, Profiles.format(Profiles.add(
+                            Collections.<Profiles.Profile>emptyList(), name, old)));
+                }
+                e.putBoolean(ONBOARDED, true);
+            } else {
+                e.putBoolean(HTTP_ENABLED, false);
+                e.putString(PROFILES, Profiles.format(Profiles.add(
+                        Collections.<Profiles.Profile>emptyList(), name, Passwords.generate())));
+            }
+            e.remove(PASSWORD);
+            e.putInt(SCHEMA, CURRENT_SCHEMA);
+            e.commit();
+        }
+    }
+
+    /* 1.0 wrote a setting only when it was changed, or the proxy started. */
+    private boolean isFrom10() {
+        for (String key : new String[] { SOCKS_PORT, HTTP_ENABLED, HTTP_PORT, PASSWORD, ISOLATE_DEST,
+                USE_BRIDGES, BRIDGES, START_ON_BOOT, WANTS_RUNNING, ASKED_NOTIFICATIONS }) {
+            if (sp.contains(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** What Orchid is started with: one consistent copy of the settings. */
@@ -41,24 +101,28 @@ final class Prefs {
         final int socksPort;
         /** 0 when the HTTP CONNECT port is off. */
         final int httpPort;
-        /** null for no password. */
-        final String password;
+        /** Profile name to password, in order; empty when no password is required. */
+        final Map<String, String> passwords;
         final boolean isolateDest;
         final boolean useBridges;
         final String bridges;
 
-        Snapshot(int socksPort, int httpPort, String password, boolean isolateDest, boolean useBridges, String bridges) {
+        Snapshot(int socksPort, int httpPort, Map<String, String> passwords, boolean isolateDest, boolean useBridges, String bridges) {
             this.socksPort = socksPort;
             this.httpPort = httpPort;
-            this.password = password;
+            this.passwords = passwords;
             this.isolateDest = isolateDest;
             this.useBridges = useBridges;
             this.bridges = bridges;
         }
+
+        boolean isPasswordRequired() {
+            return !passwords.isEmpty();
+        }
     }
 
     Snapshot snapshot() {
-        return new Snapshot(getSocksPort(), isHttpEnabled() ? getHttpPort() : 0, getPassword(),
+        return new Snapshot(getSocksPort(), isHttpEnabled() ? getHttpPort() : 0, Profiles.passwords(getProfiles()),
                 isIsolateDest(), isUseBridges(), getBridges());
     }
 
@@ -75,7 +139,7 @@ final class Prefs {
     }
 
     boolean isHttpEnabled() {
-        return sp.getBoolean(HTTP_ENABLED, true);
+        return sp.getBoolean(HTTP_ENABLED, false);
     }
 
     void setHttpEnabled(boolean enabled) {
@@ -90,20 +154,42 @@ final class Prefs {
         sp.edit().putInt(HTTP_PORT, port).apply();
     }
 
-    /** The proxy password, or null when the proxy takes none (the default). */
-    String getPassword() {
-        return sp.getString(PASSWORD, null);
+    /** The profiles; none when the proxy takes no password. */
+    List<Profiles.Profile> getProfiles() {
+        return Profiles.parse(sp.getString(PROFILES, ""));
     }
 
-    /** A new random password, which replaces the old one. */
-    String usePassword() {
-        final String password = Passwords.generate();
-        sp.edit().putString(PASSWORD, password).apply();
-        return password;
+    private void setProfiles(List<Profiles.Profile> profiles) {
+        sp.edit().putString(PROFILES, Profiles.format(profiles)).apply();
     }
 
-    void clearPassword() {
-        sp.edit().remove(PASSWORD).apply();
+    boolean isPasswordRequired() {
+        return !getProfiles().isEmpty();
+    }
+
+    /** A new profile with a random password; the name must pass Profiles#checkName. */
+    Profiles.Profile addProfile(String name) {
+        final List<Profiles.Profile> list = Profiles.add(getProfiles(), name, Passwords.generate());
+        setProfiles(list);
+        return list.get(list.size() - 1);
+    }
+
+    /** A new random password for a profile: the app given the old one can no longer connect. */
+    void renewPassword(String name) {
+        setProfiles(Profiles.renew(getProfiles(), name, Passwords.generate()));
+    }
+
+    void removeProfile(String name) {
+        setProfiles(Profiles.remove(getProfiles(), name));
+    }
+
+    /** Off: no profile, no password.  On: one profile, if there is none. */
+    void setPasswordRequired(boolean required, String defaultName) {
+        if (!required) {
+            setProfiles(Collections.<Profiles.Profile>emptyList());
+        } else if (getProfiles().isEmpty()) {
+            addProfile(defaultName);
+        }
     }
 
     /** IsolateDestAddr; on by default, as in the mock-up. */
@@ -157,5 +243,14 @@ final class Prefs {
 
     void setAskedForNotifications() {
         sp.edit().putBoolean(ASKED_NOTIFICATIONS, true).apply();
+    }
+
+    /** Whether the first-run choice (which apps will use the proxy) was made. */
+    boolean isOnboarded() {
+        return sp.getBoolean(ONBOARDED, false);
+    }
+
+    void setOnboarded() {
+        sp.edit().putBoolean(ONBOARDED, true).apply();
     }
 }

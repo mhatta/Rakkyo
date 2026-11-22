@@ -1,7 +1,11 @@
 package org.mhatta.rakkyo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import android.app.AlertDialog;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -122,12 +126,7 @@ final class HomePage extends MainActivity.Page {
                 activity.getString(R.string.clip_label_address), socksValue.getText().toString(), false));
         find(R.id.http_copy).setOnClickListener(v -> UiUtil.copy(activity,
                 activity.getString(R.string.clip_label_address), httpValue.getText().toString(), false));
-        passwordCopy.setOnClickListener(v -> {
-            final String password = status != null && status.settings != null ? status.settings.password : null;
-            if (password != null) {
-                UiUtil.copy(activity, activity.getString(R.string.clip_label_password), password, true);
-            }
-        });
+        passwordCopy.setOnClickListener(v -> copyPassword());
         newIdentityButton.setOnClickListener(v -> {
             newIdentityButton.setEnabled(false);
             controller.newIdentity(delay -> {
@@ -244,11 +243,40 @@ final class HomePage extends MainActivity.Page {
         if (http) {
             httpValue.setText(TorController.LISTEN_ADDRESS + ":" + settings.httpPort);
         }
-        final boolean password = settings.password != null;
-        passwordText.setText(password ? R.string.password_set : R.string.password_none);
-        UiUtil.show(passwordCopy, password);
+        final int n = settings.passwords.size();
+        if (n == 0) {
+            passwordText.setText(R.string.password_none);
+        } else if (n == 1) {
+            passwordText.setText(R.string.password_set);
+        } else {
+            passwordText.setText(activity.getResources().getQuantityString(R.plurals.password_profiles, n, n));
+        }
+        UiUtil.show(passwordCopy, n > 0);
         UiUtil.show(chipIsolation, settings.isolateDest);
         UiUtil.show(chipBridges, settings.useBridges);
+    }
+
+    /* The password of the only profile, or of the one chosen. */
+    private void copyPassword() {
+        final Prefs.Snapshot settings = status != null ? status.settings : null;
+        if (settings == null || settings.passwords.isEmpty()) {
+            return;
+        }
+        final List<Map.Entry<String, String>> entries = new ArrayList<Map.Entry<String, String>>(settings.passwords.entrySet());
+        if (entries.size() == 1) {
+            UiUtil.copy(activity, activity.getString(R.string.clip_label_password), entries.get(0).getValue(), true);
+            return;
+        }
+        final String[] names = new String[entries.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = entries.get(i).getKey();
+        }
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.cd_copy_password)
+                .setItems(names, (d, which) -> UiUtil.copy(activity,
+                        activity.getString(R.string.clip_label_password), entries.get(which).getValue(), true))
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void renderSteps(int percent) {
