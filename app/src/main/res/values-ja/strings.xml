@@ -121,8 +121,8 @@
     <string name="guard_sampled">%s から使用</string>
     <string name="country_unknown">国は不明</string>
     <string name="settings_title">設定</string>
-    <string name="settings_subtitle">変更は次の接続から使われます</string>
-    <string name="restart_banner">変更を反映するには接続し直してください。</string>
+    <string name="settings_subtitle">パスワードはすぐに、ポートとブリッジは次の接続から反映されます</string>
+    <string name="restart_banner">新しいポートやブリッジを使うには接続し直してください。</string>
     <string name="restart_now">接続し直す</string>
     <string name="section_proxy">プロキシ</string>
     <string name="section_privacy">プライバシー</string>

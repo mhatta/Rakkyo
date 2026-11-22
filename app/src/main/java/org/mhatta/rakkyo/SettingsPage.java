@@ -31,9 +31,9 @@ import android.widget.Toast;
 import com.subgraph.orchid.Tor;
 
 /**
- * The Settings tab.  The settings are read when Orchid starts; while it
- * runs, a banner offers to reconnect once they differ from those it was
- * started with.
+ * The Settings tab.  The passwords and the isolation apply to the running
+ * client at once; ports and bridges are read when Orchid starts, so while
+ * it runs, a banner offers to reconnect once they differ.
  */
 final class SettingsPage extends MainActivity.Page {
     private final Prefs prefs;
@@ -149,6 +149,9 @@ final class SettingsPage extends MainActivity.Page {
         bridgeLines.visible(prefs.isUseBridges() || n > 0);
         boot.checked(prefs.isStartOnBoot());
         battery.visible(!isIgnoringBatteryOptimizations());
+        // Passwords and isolation take effect at once; the banner offers
+        // to reconnect for the rest.
+        TorController.get(activity).applySettings();
         updateBanner();
     }
 
@@ -297,18 +300,9 @@ final class SettingsPage extends MainActivity.Page {
             return;
         }
         final TorController.Status s = status;
-        final boolean show = s != null && s.isActive() && s.settings != null && differs(s.settings, prefs.snapshot());
+        final boolean show = s != null && s.isActive() && s.settings != null
+                && TorController.needsRestart(s.settings, prefs.snapshot());
         UiUtil.show(restartBanner, show);
-    }
-
-    private static boolean differs(Prefs.Snapshot a, Prefs.Snapshot b) {
-        return a.socksPort != b.socksPort || a.httpPort != b.httpPort
-                || !a.passwords.equals(b.passwords) || a.isolateDest != b.isolateDest
-                || a.useBridges != b.useBridges || (a.useBridges && !equal(a.bridges, b.bridges));
-    }
-
-    private static boolean equal(String a, String b) {
-        return a == null ? b == null : a.equals(b);
     }
 
     private void askPort(final boolean socks) {

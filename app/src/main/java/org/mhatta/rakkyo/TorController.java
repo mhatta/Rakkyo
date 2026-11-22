@@ -361,6 +361,43 @@ final class TorController {
         setStatus(new Status(next, 0, false, failure, failedPort, null));
     }
 
+    /**
+     * Apply the current settings to the running client, where it can take
+     * them without a restart: the passwords (profiles) and the isolation by
+     * destination, which Orchid reads for each new request.  Connections
+     * already open stay as they are.  The rest (ports, bridges) waits for
+     * the next connection; {@link #needsRestart} says whether there is any.
+     */
+    void applySettings() {
+        control.execute(new Runnable() {
+            public void run() {
+                final TorClient c = client;
+                final Status s = status;
+                if (c == null || s.settings == null || !s.isActive()) {
+                    return;
+                }
+                final Prefs.Snapshot now = prefs.snapshot();
+                final Prefs.Snapshot old = s.settings;
+                if (now.passwords.equals(old.passwords) && now.isolateDest == old.isolateDest) {
+                    return;
+                }
+                final TorConfig config = c.getConfig();
+                config.setSocksPasswords(now.passwords);
+                config.setIsolateDestAddr(now.isolateDest);
+                setStatus(new Status(s.state, s.percent, s.dormant, s.failure, s.failedPort,
+                        new Prefs.Snapshot(old.socksPort, old.httpPort, now.passwords, now.isolateDest,
+                                old.useBridges, old.bridges)));
+            }
+        });
+    }
+
+    /** Whether the client must be restarted to use these settings (after applySettings). */
+    static boolean needsRestart(Prefs.Snapshot running, Prefs.Snapshot wanted) {
+        return running.socksPort != wanted.socksPort || running.httpPort != wanted.httpPort
+                || running.useBridges != wanted.useBridges
+                || (wanted.useBridges && !running.bridges.equals(wanted.bridges));
+    }
+
     /* Tell Orchid when the device changes networks (Wi-Fi to mobile data, back online). */
     private void watchNetwork() {
         final ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);

@@ -124,8 +124,8 @@
     <string name="guard_sampled">In use since %s</string>
     <string name="country_unknown">Unknown country</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_subtitle">Changes apply from the next connection</string>
-    <string name="restart_banner">Reconnect to apply the changes.</string>
+    <string name="settings_subtitle">Passwords apply at once; ports and bridges from the next connection</string>
+    <string name="restart_banner">Reconnect to apply the new ports or bridges.</string>
     <string name="restart_now">Reconnect</string>
     <string name="section_proxy">Proxy</string>
     <string name="section_privacy">Privacy</string>
