@@ -54,6 +54,9 @@ final class HomePage extends MainActivity.Page {
     private final TextView passwordText;
     private final View passwordCopy;
     private final View actions;
+    private final View leakCard;
+    private final TextView leakText;
+    private long shownLeaks = -1;
     private final View newIdentityButton;
 
     private final Runnable tick = new Runnable() {
@@ -99,6 +102,8 @@ final class HomePage extends MainActivity.Page {
         passwordText = find(R.id.password_text);
         passwordCopy = find(R.id.password_copy);
         actions = find(R.id.actions);
+        leakCard = find(R.id.leak_card);
+        leakText = find(R.id.leak_text);
         newIdentityButton = find(R.id.new_identity_button);
 
         final int[] stepNames = { R.string.step_directory, R.string.step_consensus, R.string.step_descriptors, R.string.step_circuit };
@@ -186,6 +191,10 @@ final class HomePage extends MainActivity.Page {
         UiUtil.show(actions, running);
         UiUtil.show(chips, running);
         UiUtil.show(traffic, running);
+        if (!running) {
+            UiUtil.show(leakCard, false);
+            shownLeaks = -1;
+        }
         powerButton.setEnabled(s.state != TorController.State.STOPPING);
 
         final int titleColor;
@@ -357,11 +366,38 @@ final class HomePage extends MainActivity.Page {
                     Formats.bytes(t.getBytesRead(), locale), Formats.bytes(t.getBytesWritten(), locale)));
         }
         renderCircuitChip();
+        renderLeaks(AddressOnly.of(controller.statistics()));
         final long now = System.currentTimeMillis();
         if (shown && now - lastCircuitQuery >= CIRCUITS_INTERVAL) {
             lastCircuitQuery = now;
             controller.circuits(this::countExitCircuits);
         }
+    }
+
+    /* Which apps gave only an IP address since connecting (Orchid counts them by profile). */
+    private void renderLeaks(AddressOnly leaks) {
+        UiUtil.show(leakCard, leaks.total > 0);
+        if (leaks.total == 0 || leaks.total == shownLeaks) {
+            return;
+        }
+        shownLeaks = leaks.total;
+        final int n = (int) Math.min(Integer.MAX_VALUE, leaks.total);
+        final StringBuilder text = new StringBuilder(activity.getResources().getQuantityString(R.plurals.leak_text, n, n));
+        final StringBuilder apps = new StringBuilder();
+        for (AddressOnly.Entry e : leaks.byProfile) {
+            if (apps.length() > 0) {
+                apps.append(activity.getString(R.string.list_separator));
+            }
+            final String name = e.profile.isEmpty() ? activity.getString(R.string.leak_no_profile) : e.profile;
+            apps.append(activity.getString(R.string.leak_app_count, name, e.count));
+        }
+        if (apps.length() > 0) {
+            text.append("\n\n").append(activity.getString(R.string.leak_by_app, apps));
+        }
+        if (leaks.refused > 0) {
+            text.append("\n").append(activity.getString(R.string.leak_refused, leaks.refused));
+        }
+        leakText.setText(text);
     }
 
     private void countExitCircuits(List<CircuitInfo> circuits) {

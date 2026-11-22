@@ -228,4 +228,19 @@
     <string name="notification_paused_text">ほかのアプリに取られないよう、ポートを確保しています</string>
     <string name="setting_keep_ports">切断中もポートを確保する</string>
     <string name="setting_keep_ports_summary">切断すると休止になります。接続は断り、ほかのアプリがポートを取ってプロキシ宛ての通信を受け取ることを防ぎます。通知は残ります。</string>
+    <string name="leak_title">Tor の外で名前を調べているアプリがあります</string>
+    <string name="leak_no_profile">パスワードなし</string>
+    <string name="leak_app_count">%1$s（%2$d）</string>
+    <string name="leak_by_app">アプリ別：%s</string>
+    <string name="leak_refused">断った接続：%d（設定 › IP アドレス指定の接続を断る）</string>
+    <string name="list_separator">、</string>
+    <string name="setting_safe_socks">IP アドレス指定の接続を断る</string>
+    <string name="setting_safe_socks_summary">IP アドレスだけを指定するアプリは、ネットワークから見える形で名前を自分で調べています。断るとそうしたアプリは失敗するようになります。意図して IP アドレスに接続するアプリも失敗します。</string>
+    <string name="profile_address_only">IP アドレス指定 %d</string>
+    <plurals name="leak_text">
+        <item quantity="other">接続してから %d 件の接続が、ホスト名ではなく IP アドレスだけを指定しました。そのアプリは Tor の外で名前を自分で調べたため、使っているネットワークからはどのサイトか分かりました。名前の解決をプロキシに任せる設定（リモート DNS、socks5h などと呼ばれます）にしてください。</item>
+    </plurals>
+    <plurals name="profile_requests">
+        <item quantity="other">接続してから %d 件</item>
+    </plurals>
 </resources>

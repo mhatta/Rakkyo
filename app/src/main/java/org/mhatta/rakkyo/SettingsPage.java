@@ -28,6 +28,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.subgraph.orchid.ProxyStatistics;
 import com.subgraph.orchid.Tor;
 
 /**
@@ -42,7 +43,7 @@ final class SettingsPage extends MainActivity.Page {
     private final LayoutInflater inflater;
     private TorController.Status status;
 
-    private Row socksPort, http, httpPort, isolate, keepPorts, bridges, bridgeLines, boot, battery, geoip;
+    private Row socksPort, http, httpPort, isolate, safeSocks, keepPorts, bridges, bridgeLines, boot, battery, geoip;
     /** The Apps section, rebuilt by refresh(): the password switch, a row per profile, "Add an app". */
     private ViewGroup apps;
 
@@ -89,6 +90,12 @@ final class SettingsPage extends MainActivity.Page {
         isolate.summary(activity.getString(R.string.setting_isolate_summary));
         isolate.toggle(on -> {
             prefs.setIsolateDest(on);
+            refresh();
+        });
+        safeSocks = row(section, R.string.setting_safe_socks);
+        safeSocks.summary(activity.getString(R.string.setting_safe_socks_summary));
+        safeSocks.toggle(on -> {
+            prefs.setSafeSocks(on);
             refresh();
         });
         keepPorts = row(section, R.string.setting_keep_ports);
@@ -151,6 +158,7 @@ final class SettingsPage extends MainActivity.Page {
         httpPort.visible(httpOn);
         refreshApps();
         isolate.checked(prefs.isIsolateDest());
+        safeSocks.checked(prefs.isSafeSocks());
         keepPorts.checked(prefs.isKeepPorts());
         bridges.checked(prefs.isUseBridges());
         final int n = BridgeLines.parse(prefs.getBridges()).bridges.size();
@@ -182,9 +190,14 @@ final class SettingsPage extends MainActivity.Page {
             }
         });
         require.checked(required);
+        // Requests since connecting, by profile (null when not connected).
+        final ProxyStatistics stats = TorController.get(activity).statistics();
         for (final Profiles.Profile p : profiles) {
             final Row r = row(apps, 0);
             r.title.setText(p.name);
+            if (stats != null) {
+                r.summary(usage(stats.get(p.name)));
+            }
             r.chevron();
             r.onClick(v -> showProfile(p.name));
         }
@@ -194,6 +207,16 @@ final class SettingsPage extends MainActivity.Page {
             add.chevron();
             add.onClick(v -> askProfileName());
         }
+    }
+
+    private String usage(ProxyStatistics.Counts c) {
+        final int n = (int) Math.min(Integer.MAX_VALUE, c.getRequests());
+        final String requests = activity.getResources().getQuantityString(R.plurals.profile_requests, n, n);
+        if (c.getAddressOnlyRequests() == 0) {
+            return requests;
+        }
+        return requests + activity.getString(R.string.list_separator)
+                + activity.getString(R.string.profile_address_only, c.getAddressOnlyRequests());
     }
 
     /* Turning the password off lets every app on the device use the proxy: say so first. */

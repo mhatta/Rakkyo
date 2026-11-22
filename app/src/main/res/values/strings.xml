@@ -237,4 +237,21 @@
     <string name="notification_paused_text">The ports are kept so that no other app can take them</string>
     <string name="setting_keep_ports">Keep the ports while disconnected</string>
     <string name="setting_keep_ports_summary">Disconnecting pauses: connections are refused, and no other app can take the ports and receive what your apps send to the proxy. The notification stays.</string>
+    <string name="leak_title">An app looks up host names outside Tor</string>
+    <string name="leak_no_profile">without a password</string>
+    <string name="leak_app_count">%1$s (%2$d)</string>
+    <string name="leak_by_app">By app: %s</string>
+    <string name="leak_refused">Refused: %d (Settings › Refuse connections by IP address)</string>
+    <string name="list_separator">", "</string>
+    <string name="setting_safe_socks">Refuse connections by IP address</string>
+    <string name="setting_safe_socks_summary">An app that gives only an IP address has looked the host name up itself, where the network could see it. Refusing makes such apps fail instead; apps that connect to an IP address on purpose fail too.</string>
+    <string name="profile_address_only">%d by IP address</string>
+    <plurals name="leak_text">
+        <item quantity="one">%d connection since connecting gave only an IP address, not a host name: the app looked the name up itself, outside Tor, so the network you are on could see which site it was. Set the app to resolve host names through the proxy (often called remote DNS, or socks5h).</item>
+        <item quantity="other">%d connections since connecting gave only an IP address, not a host name: the app looked the names up itself, outside Tor, so the network you are on could see which sites they were. Set the app to resolve host names through the proxy (often called remote DNS, or socks5h).</item>
+    </plurals>
+    <plurals name="profile_requests">
+        <item quantity="one">%d connection since connecting</item>
+        <item quantity="other">%d connections since connecting</item>
+    </plurals>
 </resources>

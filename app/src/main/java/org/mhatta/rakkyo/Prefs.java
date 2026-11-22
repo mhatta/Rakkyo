@@ -28,6 +28,7 @@ final class Prefs {
     private static final String PASSWORD = "password";
     private static final String PROFILES = "profiles";
     private static final String ISOLATE_DEST = "isolate_dest";
+    private static final String SAFE_SOCKS = "safe_socks";
     private static final String USE_BRIDGES = "use_bridges";
     private static final String BRIDGES = "bridges";
     private static final String START_ON_BOOT = "start_on_boot";
@@ -106,14 +107,18 @@ final class Prefs {
         /** Profile name to password, in order; empty when no password is required. */
         final Map<String, String> passwords;
         final boolean isolateDest;
+        /** Refuse requests that give only an IP address (Tor's SafeSocks). */
+        final boolean safeSocks;
         final boolean useBridges;
         final String bridges;
 
-        Snapshot(int socksPort, int httpPort, Map<String, String> passwords, boolean isolateDest, boolean useBridges, String bridges) {
+        Snapshot(int socksPort, int httpPort, Map<String, String> passwords, boolean isolateDest, boolean safeSocks,
+                boolean useBridges, String bridges) {
             this.socksPort = socksPort;
             this.httpPort = httpPort;
             this.passwords = passwords;
             this.isolateDest = isolateDest;
+            this.safeSocks = safeSocks;
             this.useBridges = useBridges;
             this.bridges = bridges;
         }
@@ -125,7 +130,7 @@ final class Prefs {
 
     Snapshot snapshot() {
         return new Snapshot(getSocksPort(), isHttpEnabled() ? getHttpPort() : 0, Profiles.passwords(getProfiles()),
-                isIsolateDest(), isUseBridges(), getBridges());
+                isIsolateDest(), isSafeSocks(), isUseBridges(), getBridges());
     }
 
     static boolean isValidPort(int port) {
@@ -201,6 +206,15 @@ final class Prefs {
 
     void setIsolateDest(boolean value) {
         sp.edit().putBoolean(ISOLATE_DEST, value).apply();
+    }
+
+    /** Off by default: some apps connect to IP addresses on purpose. */
+    boolean isSafeSocks() {
+        return sp.getBoolean(SAFE_SOCKS, false);
+    }
+
+    void setSafeSocks(boolean value) {
+        sp.edit().putBoolean(SAFE_SOCKS, value).apply();
     }
 
     boolean isUseBridges() {

@@ -24,6 +24,7 @@ import android.util.Log;
 import com.subgraph.orchid.CircuitInfo;
 import com.subgraph.orchid.DormantListener;
 import com.subgraph.orchid.GuardInfo;
+import com.subgraph.orchid.ProxyStatistics;
 import com.subgraph.orchid.TorClient;
 import com.subgraph.orchid.TorConfig;
 import com.subgraph.orchid.TorInitializationListener;
@@ -292,6 +293,7 @@ final class TorController {
         // One password per profile, or none: see Profiles.
         config.setSocksPasswords(settings.passwords);
         config.setIsolateDestAddr(settings.isolateDest);
+        config.setSafeSocks(settings.safeSocks);
         // An hour without use and Orchid rests; the next connection wakes it.
         config.setDormantClientTimeout(1, TimeUnit.HOURS);
         if (settings.useBridges) {
@@ -489,8 +491,8 @@ final class TorController {
 
     /**
      * Apply the current settings to the running client, where it can take
-     * them without a restart: the passwords (profiles) and the isolation by
-     * destination, which Orchid reads for each new request.  Connections
+     * them without a restart: the passwords (profiles), the isolation by
+     * destination and SafeSocks, which Orchid reads for each new request.  Connections
      * already open stay as they are.  The rest (ports, bridges) waits for
      * the next connection; {@link #needsRestart} says whether there is any.
      */
@@ -512,15 +514,17 @@ final class TorController {
                 }
                 final Prefs.Snapshot now = prefs.snapshot();
                 final Prefs.Snapshot old = s.settings;
-                if (now.passwords.equals(old.passwords) && now.isolateDest == old.isolateDest) {
+                if (now.passwords.equals(old.passwords) && now.isolateDest == old.isolateDest
+                        && now.safeSocks == old.safeSocks) {
                     return;
                 }
                 final TorConfig config = c.getConfig();
                 config.setSocksPasswords(now.passwords);
                 config.setIsolateDestAddr(now.isolateDest);
+                config.setSafeSocks(now.safeSocks);
                 setStatus(new Status(s.state, s.percent, s.dormant, s.failure, s.failedPort,
                         new Prefs.Snapshot(old.socksPort, old.httpPort, now.passwords, now.isolateDest,
-                                old.useBridges, old.bridges)));
+                                now.safeSocks, old.useBridges, old.bridges)));
             }
         });
     }
@@ -611,6 +615,16 @@ final class TorController {
                 post(callback, result);
             }
         });
+    }
+
+    /**
+     * What the proxy ports were asked since the client started, by profile
+     * (requests, and those that gave only an IP address), or null when no
+     * client runs.  Cheap; any thread.
+     */
+    ProxyStatistics statistics() {
+        final TorClient c = client;
+        return c == null ? null : c.getProxyStatistics();
     }
 
     /** Bytes sent and received, or null when no client runs.  Cheap; any thread. */
