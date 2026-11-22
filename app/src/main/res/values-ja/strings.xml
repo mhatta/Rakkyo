@@ -214,4 +214,8 @@
     <plurals name="password_profiles">
         <item quantity="other">パスワード：%d 個のアプリごとに必須（ユーザー名は自由）</item>
     </plurals>
+    <string name="onboarding_title">どのアプリから Rakkyo を使いますか</string>
+    <string name="onboarding_message">ブラウザやメッセンジャーなど、プロキシの設定があるアプリ：アプリごとに専用のパスワードを使い、端末のほかのアプリはプロキシを使えません。おすすめです。\n\nWi-Fi のプロキシ設定：パスワードを送れないので、パスワードなしにして HTTP CONNECT のポートを開きます。端末のどのアプリもプロキシを使え、Tor を使っていることも分かるようになります。\n\nあとから設定で変えられます。</string>
+    <string name="onboarding_apps">アプリ</string>
+    <string name="onboarding_wifi">Wi-Fi の設定</string>
 </resources>

@@ -3,6 +3,7 @@ package org.mhatta.rakkyo;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -57,6 +58,35 @@ public final class MainActivity extends Activity implements TorController.Listen
             initial = savedInstanceState.getInt(STATE_TAB, initial);
         }
         showTab(initial);
+        if (savedInstanceState == null && !new Prefs(this).isOnboarded()) {
+            askUse();
+        }
+    }
+
+    /*
+     * The first-run choice, for new installs: apps that can send a
+     * password (the default, a password per app and no HTTP port), or the
+     * Wi-Fi proxy setting, which can send none and needs the HTTP port.
+     * Settings can change either later.
+     */
+    private void askUse() {
+        final Prefs prefs = new Prefs(this);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.onboarding_title)
+                .setMessage(R.string.onboarding_message)
+                .setPositiveButton(R.string.onboarding_apps, (d, w) -> {
+                    prefs.setOnboarded();
+                    openGuide();
+                })
+                .setNeutralButton(R.string.onboarding_wifi, (d, w) -> {
+                    prefs.setPasswordRequired(false, null);
+                    prefs.setHttpEnabled(true);
+                    prefs.setOnboarded();
+                    openGuide();
+                })
+                // Back keeps the default.
+                .setOnCancelListener(d -> prefs.setOnboarded())
+                .show();
     }
 
     @Override

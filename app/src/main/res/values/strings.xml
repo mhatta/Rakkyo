@@ -223,4 +223,8 @@
         <item quantity="one">Password: required, for %d app (any user name works)</item>
         <item quantity="other">Passwords: one for each of %d apps (any user name works)</item>
     </plurals>
+    <string name="onboarding_title">Which apps will use Rakkyo?</string>
+    <string name="onboarding_message">Apps with proxy settings, such as browsers and messengers: each gets a password of its own, and no other app on the device can use the proxy. Recommended.\n\nThe Wi-Fi proxy setting: it cannot send a password, so the proxy takes none, and the HTTP CONNECT port is opened. Any app on the device can then use the proxy, and tell that you use Tor.\n\nYou can change this later in Settings.</string>
+    <string name="onboarding_apps">Apps</string>
+    <string name="onboarding_wifi">Wi-Fi setting</string>
 </resources>
