@@ -54,7 +54,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="A local SOCKS5 and HTTP CONNECT proxy that other apps on the device connect to; it must keep running for their connections to go through the Tor network." />
+                android:value="A local SOCKS5 and HTTP CONNECT proxy that other apps on the device connect to; it must keep running for their connections to go through the Tor network. While disconnected, it keeps its ports and refuses connections, so that no other app can take the ports and receive the traffic meant for Tor." />
         </service>
 
         <receiver

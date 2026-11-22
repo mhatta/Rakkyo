@@ -11,8 +11,9 @@ import android.os.IBinder;
 import android.widget.Toast;
 
 /**
- * Keeps the process alive while the proxy runs, as a foreground service
- * with an ongoing notification.  Orchid itself lives in {@link TorController}.
+ * Keeps the process alive while the proxy runs or is paused (holding its
+ * ports), as a foreground service with an ongoing notification.  Orchid
+ * itself lives in {@link TorController}.
  *
  * <p>The service type is "specialUse" (Android 14+): a local proxy fits none
  * of the other types, and "dataSync" would be stopped after six hours on
@@ -24,6 +25,7 @@ public final class TorService extends Service implements TorController.Listener 
     static final String ACTION_STOP = "org.mhatta.rakkyo.action.STOP";
     static final String ACTION_NEW_IDENTITY = "org.mhatta.rakkyo.action.NEW_IDENTITY";
     static final String ACTION_RESTART = "org.mhatta.rakkyo.action.RESTART";
+    static final String ACTION_PAUSE = "org.mhatta.rakkyo.action.PAUSE";
 
     private TorController controller;
     private boolean inForeground;
@@ -36,22 +38,40 @@ public final class TorService extends Service implements TorController.Listener 
 
     /** Start the proxy (from the UI, or at boot). */
     static void start(Context context) {
-        new Prefs(context).setWantsRunning(true);
         send(context, ACTION_START);
     }
 
+    /** What the Disconnect button does: pause, or stop if the user turned "Keep the ports" off. */
+    static void disconnect(Context context) {
+        if (new Prefs(context).isKeepPorts()) {
+            pause(context);
+        } else {
+            stop(context);
+        }
+    }
+
+    /** Keep the ports and refuse connections ({@link TorController#pause}). */
+    static void pause(Context context) {
+        send(context, ACTION_PAUSE);
+    }
+
+    /** Stop the proxy and close its ports. */
     static void stop(Context context) {
-        new Prefs(context).setWantsRunning(false);
+        final Prefs prefs = new Prefs(context);
+        prefs.setWantsRunning(false);
+        prefs.setWantsPaused(false);
         // Stop Orchid even if the service is not running (it failed to start).
-        TorController.get(context).stop();
-        if (TorController.get(context).status().isActive()) {
+        final TorController controller = TorController.get(context);
+        final boolean wasForeground = controller.status().isActive()
+                || controller.status().state == TorController.State.PAUSED;
+        controller.stop();
+        if (wasForeground) {
             send(context, ACTION_STOP);
         }
     }
 
     /** Stop and start again with the current settings. */
     static void restart(Context context) {
-        new Prefs(context).setWantsRunning(true);
         send(context, ACTION_RESTART);
     }
 
@@ -79,23 +99,38 @@ public final class TorService extends Service implements TorController.Listener 
 
         // A null intent: Android restarted the service after killing the
         // process.  Carry on only if the user had left the proxy running.
+        // The wish is recorded here, so that the notification's actions,
+        // which come straight to the service, record it too.
+        final Prefs prefs = new Prefs(this);
         final String action = intent == null ? null : intent.getAction();
-        if (action == null || ACTION_START.equals(action) || ACTION_RESTART.equals(action)) {
+        if (action == null || ACTION_START.equals(action) || ACTION_RESTART.equals(action)
+                || ACTION_PAUSE.equals(action)) {
             startedAt = controller.status().seq;
         }
         if (action == null) {
-            if (new Prefs(this).wantsRunning()) {
+            if (prefs.wantsRunning()) {
                 controller.start();
+            } else if (prefs.wantsPaused() && prefs.isKeepPorts()) {
+                controller.pause();
             } else {
                 finish();
                 return START_NOT_STICKY;
             }
-        } else if (ACTION_START.equals(action)) {
-            controller.start();
-        } else if (ACTION_RESTART.equals(action)) {
-            controller.restart();
+        } else if (ACTION_START.equals(action) || ACTION_RESTART.equals(action)) {
+            prefs.setWantsRunning(true);
+            prefs.setWantsPaused(false);
+            if (ACTION_START.equals(action)) {
+                controller.start();
+            } else {
+                controller.restart();
+            }
+        } else if (ACTION_PAUSE.equals(action)) {
+            prefs.setWantsRunning(false);
+            prefs.setWantsPaused(true);
+            controller.pause();
         } else if (ACTION_STOP.equals(action)) {
-            new Prefs(this).setWantsRunning(false);
+            prefs.setWantsRunning(false);
+            prefs.setWantsPaused(false);
             startedAt = Long.MIN_VALUE;
             controller.stop();
         } else if (ACTION_NEW_IDENTITY.equals(action)) {
@@ -123,6 +158,7 @@ public final class TorService extends Service implements TorController.Listener 
         switch (status.state) {
         case STARTING:
         case RUNNING:
+        case PAUSED:
             goForeground(status);
             break;
         case FAILED:

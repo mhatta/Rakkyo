@@ -172,6 +172,16 @@
                 android:text="@string/action_cancel"
                 android:visibility="gone" />
 
+            <!-- While paused: stop holding the ports. -->
+            <Button
+                android:id="@+id/close_ports_button"
+                style="@style/Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap"
+                android:text="@string/action_close_ports"
+                android:visibility="gone" />
+
             <!-- While connected: the proxy addresses. -->
             <LinearLayout
                 android:id="@+id/proxy_card"

@@ -42,7 +42,7 @@ final class SettingsPage extends MainActivity.Page {
     private final LayoutInflater inflater;
     private TorController.Status status;
 
-    private Row socksPort, http, httpPort, isolate, bridges, bridgeLines, boot, battery, geoip;
+    private Row socksPort, http, httpPort, isolate, keepPorts, bridges, bridgeLines, boot, battery, geoip;
     /** The Apps section, rebuilt by refresh(): the password switch, a row per profile, "Add an app". */
     private ViewGroup apps;
 
@@ -89,6 +89,15 @@ final class SettingsPage extends MainActivity.Page {
         isolate.summary(activity.getString(R.string.setting_isolate_summary));
         isolate.toggle(on -> {
             prefs.setIsolateDest(on);
+            refresh();
+        });
+        keepPorts = row(section, R.string.setting_keep_ports);
+        keepPorts.summary(activity.getString(R.string.setting_keep_ports_summary));
+        keepPorts.toggle(on -> {
+            prefs.setKeepPorts(on);
+            if (!on && status != null && status.state == TorController.State.PAUSED) {
+                TorService.stop(activity);
+            }
             refresh();
         });
 
@@ -142,6 +151,7 @@ final class SettingsPage extends MainActivity.Page {
         httpPort.visible(httpOn);
         refreshApps();
         isolate.checked(prefs.isIsolateDest());
+        keepPorts.checked(prefs.isKeepPorts());
         bridges.checked(prefs.isUseBridges());
         final int n = BridgeLines.parse(prefs.getBridges()).bridges.size();
         bridgeLines.value(n == 0 ? activity.getString(R.string.bridge_lines_none)

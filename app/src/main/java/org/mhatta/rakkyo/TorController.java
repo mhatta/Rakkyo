@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -47,7 +49,13 @@ final class TorController {
     /** The proxies listen on the loopback address only. */
     static final String LISTEN_ADDRESS = "127.0.0.1";
 
-    enum State { STOPPED, STARTING, RUNNING, STOPPING, FAILED }
+    /**
+     * PAUSED: no client, but the proxy ports stay bound and every
+     * connection to them is closed at once.  Apps that are set to use the
+     * proxy then fail, instead of reaching another app that took the port
+     * (see {@link #pause}).
+     */
+    enum State { STOPPED, STARTING, RUNNING, STOPPING, FAILED, PAUSED }
 
     enum Failure {
         /** A port is taken by another app; {@link Status#failedPort} says which. */
@@ -117,6 +125,8 @@ final class TorController {
      */
     private ServerSocket socksSocket;
     private ServerSocket httpSocket;
+    /** Accepting and closing connections on the ports while PAUSED. */
+    private final List<Refuser> refusers = new java.util.ArrayList<Refuser>();
 
     static synchronized TorController get(Context context) {
         if (instance == null) {
@@ -190,6 +200,21 @@ final class TorController {
         });
     }
 
+    /**
+     * Stop the client but keep the ports, refusing every connection: while
+     * Rakkyo holds them, no other app can bind them and receive what is
+     * meant for Tor (host names, passwords, traffic) from the apps set up
+     * to use the proxy.  The ports are bound if they are not held yet (after
+     * a failure, or when Android restarted the process).
+     */
+    void pause() {
+        control.execute(new Runnable() {
+            public void run() {
+                pauseOnControlThread();
+            }
+        });
+    }
+
     /** Stop and start again, so that changed settings take effect. */
     void restart() {
         control.execute(new Runnable() {
@@ -201,7 +226,35 @@ final class TorController {
         });
     }
 
+    private void pauseOnControlThread() {
+        // A client stops with its ports kept (as for a restart).
+        stopOnControlThread(State.STOPPING, null, 0);
+        final Prefs.Snapshot settings = prefs.snapshot();
+        stopRefusing();
+        int port = settings.socksPort;
+        try {
+            socksSocket = keepOrBind(socksSocket, settings.socksPort);
+            port = settings.httpPort;
+            if (settings.httpPort != 0) {
+                httpSocket = keepOrBind(httpSocket, settings.httpPort);
+            } else {
+                closeQuietly(httpSocket);
+                httpSocket = null;
+            }
+        } catch (IOException e) {
+            Log.w(TAG, "Cannot listen on port " + port + ": " + e.getMessage());
+            closePorts();
+            setStatus(new Status(State.FAILED, 0, false, Failure.PORT_IN_USE, port, null));
+            return;
+        }
+        refuse(socksSocket);
+        refuse(httpSocket);
+        setStatus(new Status(State.PAUSED, 0, false, null, 0, settings));
+    }
+
     private void startOnControlThread() {
+        // Paused: Orchid takes over the ports from the refusers.
+        stopRefusing();
         final Prefs.Snapshot settings = prefs.snapshot();
         final int gen = ++generation;
         setStatus(new Status(State.STARTING, 0, false, null, 0, settings));
@@ -317,7 +370,79 @@ final class TorController {
         return new ServerSocket(port, 50, InetAddress.getByName(LISTEN_ADDRESS));
     }
 
+    private void refuse(ServerSocket socket) {
+        if (socket != null) {
+            final Refuser r = new Refuser(socket);
+            refusers.add(r);
+            r.start();
+        }
+    }
+
+    private void stopRefusing() {
+        for (Refuser r : refusers) {
+            r.finish();
+        }
+        refusers.clear();
+    }
+
+    /*
+     * Accepts on a held port and closes each connection at once: the app
+     * on the other end sees the proxy refuse, and learns nothing else.  The
+     * accept times out now and then, so that finish() can stop the thread
+     * without closing the socket, which the next client takes over.
+     */
+    static final class Refuser extends Thread {
+        private static final int POLL_MS = 200;
+        private final ServerSocket socket;
+        private volatile boolean running = true;
+
+        Refuser(ServerSocket socket) {
+            super("Rakkyo refuser :" + socket.getLocalPort());
+            this.socket = socket;
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            try {
+                socket.setSoTimeout(POLL_MS);
+                while (running) {
+                    try {
+                        final Socket s = socket.accept();
+                        try {
+                            s.setSoLinger(true, 0);
+                        } catch (IOException e) {
+                            // closed anyway
+                        }
+                        s.close();
+                    } catch (SocketTimeoutException e) {
+                        // check running
+                    }
+                }
+            } catch (IOException e) {
+                // The port was closed: nothing to refuse any more.
+            }
+        }
+
+        void finish() {
+            running = false;
+            try {
+                join(2 * POLL_MS + 1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            try {
+                if (!socket.isClosed()) {
+                    socket.setSoTimeout(0);
+                }
+            } catch (IOException e) {
+                // closed meanwhile
+            }
+        }
+    }
+
     private void closePorts() {
+        stopRefusing();
         closeQuietly(socksSocket);
         closeQuietly(httpSocket);
         socksSocket = null;
@@ -335,9 +460,10 @@ final class TorController {
     }
 
     /*
-     * With next STOPPING (a restart), the ports stay open for the next
-     * client, which takes them over; Orchid's stop() returns once the old
-     * client no longer accepts on them.  Otherwise they are closed.
+     * With next STOPPING (a restart, or a pause), the ports stay open for
+     * the next client or the refusers, which take them over; Orchid's
+     * stop() returns once the old client no longer accepts on them.
+     * Otherwise they are closed.
      */
     private void stopOnControlThread(State next, Failure failure, int failedPort) {
         final TorClient c = client;
@@ -373,6 +499,14 @@ final class TorController {
             public void run() {
                 final TorClient c = client;
                 final Status s = status;
+                if (s.state == State.PAUSED && s.settings != null) {
+                    // Hold the ports as they are set now.
+                    final Prefs.Snapshot wanted = prefs.snapshot();
+                    if (s.settings.socksPort != wanted.socksPort || s.settings.httpPort != wanted.httpPort) {
+                        pauseOnControlThread();
+                    }
+                    return;
+                }
                 if (c == null || s.settings == null || !s.isActive()) {
                     return;
                 }

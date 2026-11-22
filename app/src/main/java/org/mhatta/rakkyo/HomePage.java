@@ -45,6 +45,7 @@ final class HomePage extends MainActivity.Page {
     private final View[] steps = new View[4];
     private final View connectingNote;
     private final View cancelButton;
+    private final View closePortsButton;
     private final View proxyCard;
     private final TextView socksValue;
     private final View httpDivider;
@@ -89,6 +90,7 @@ final class HomePage extends MainActivity.Page {
         steps[3] = find(R.id.step_4);
         connectingNote = find(R.id.connecting_note);
         cancelButton = find(R.id.cancel_button);
+        closePortsButton = find(R.id.close_ports_button);
         proxyCard = find(R.id.proxy_card);
         socksValue = find(R.id.socks_value);
         httpDivider = find(R.id.http_divider);
@@ -111,17 +113,19 @@ final class HomePage extends MainActivity.Page {
             switch (status.state) {
             case STOPPED:
             case FAILED:
+            case PAUSED:
                 activity.connect();
                 break;
             case STARTING:
             case RUNNING:
-                TorService.stop(activity);
+                TorService.disconnect(activity);
                 break;
             case STOPPING:
                 break;
             }
         });
-        cancelButton.setOnClickListener(v -> TorService.stop(activity));
+        cancelButton.setOnClickListener(v -> TorService.disconnect(activity));
+        closePortsButton.setOnClickListener(v -> TorService.stop(activity));
         find(R.id.socks_copy).setOnClickListener(v -> UiUtil.copy(activity,
                 activity.getString(R.string.clip_label_address), socksValue.getText().toString(), false));
         find(R.id.http_copy).setOnClickListener(v -> UiUtil.copy(activity,
@@ -177,6 +181,7 @@ final class HomePage extends MainActivity.Page {
         UiUtil.show(stepsCard, starting);
         UiUtil.show(connectingNote, starting);
         UiUtil.show(cancelButton, starting);
+        UiUtil.show(closePortsButton, s.state == TorController.State.PAUSED);
         UiUtil.show(proxyCard, running);
         UiUtil.show(actions, running);
         UiUtil.show(chips, running);
@@ -209,6 +214,15 @@ final class HomePage extends MainActivity.Page {
             powerIcon.setColorFilter(activity.getColor(R.color.text_muted));
             statusTitle.setText(R.string.status_stopping);
             statusDetail.setText("");
+            titleColor = R.color.text;
+            break;
+        case PAUSED:
+            powerButton.setBackgroundResource(R.drawable.bg_power_off);
+            powerIcon.setColorFilter(activity.getColor(R.color.text_secondary));
+            powerButton.setContentDescription(activity.getString(R.string.cd_power_connect));
+            statusTitle.setText(R.string.status_paused);
+            statusDetail.setText(s.settings == null ? activity.getString(R.string.status_paused_detail_short)
+                    : activity.getString(R.string.status_paused_detail, portsText(s.settings)));
             titleColor = R.color.text;
             break;
         case FAILED:
@@ -254,6 +268,11 @@ final class HomePage extends MainActivity.Page {
         UiUtil.show(passwordCopy, n > 0);
         UiUtil.show(chipIsolation, settings.isolateDest);
         UiUtil.show(chipBridges, settings.useBridges);
+    }
+
+    private static String portsText(Prefs.Snapshot settings) {
+        return settings.httpPort == 0 ? String.valueOf(settings.socksPort)
+                : settings.socksPort + ", " + settings.httpPort;
     }
 
     /* The password of the only profile, or of the one chosen. */

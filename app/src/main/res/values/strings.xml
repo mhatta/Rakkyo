@@ -227,4 +227,14 @@
     <string name="onboarding_message">Apps with proxy settings, such as browsers and messengers: each gets a password of its own, and no other app on the device can use the proxy. Recommended.\n\nThe Wi-Fi proxy setting: it cannot send a password, so the proxy takes none, and the HTTP CONNECT port is opened. Any app on the device can then use the proxy, and tell that you use Tor.\n\nYou can change this later in Settings.</string>
     <string name="onboarding_apps">Apps</string>
     <string name="onboarding_wifi">Wi-Fi setting</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_paused_detail">Not connected. Port %s is kept and refuses every connection, so that no other app can take it.</string>
+    <string name="status_paused_detail_short">Not connected. The ports are kept and refuse every connection.</string>
+    <string name="action_close_ports">Close the ports</string>
+    <string name="action_connect">Connect</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="notification_paused">Paused: connections are refused</string>
+    <string name="notification_paused_text">The ports are kept so that no other app can take them</string>
+    <string name="setting_keep_ports">Keep the ports while disconnected</string>
+    <string name="setting_keep_ports_summary">Disconnecting pauses: connections are refused, and no other app can take the ports and receive what your apps send to the proxy. The notification stays.</string>
 </resources>

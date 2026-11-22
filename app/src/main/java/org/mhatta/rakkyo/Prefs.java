@@ -34,6 +34,8 @@ final class Prefs {
     private static final String WANTS_RUNNING = "wants_running";
     private static final String ASKED_NOTIFICATIONS = "asked_notifications";
     private static final String ONBOARDED = "onboarded";
+    private static final String KEEP_PORTS = "keep_ports";
+    private static final String WANTS_PAUSED = "wants_paused";
     /** The version of the stored settings: absent in 1.0, 2 from 1.1. */
     private static final String SCHEMA = "schema";
     private static final int CURRENT_SCHEMA = 2;
@@ -235,6 +237,24 @@ final class Prefs {
 
     void setWantsRunning(boolean value) {
         sp.edit().putBoolean(WANTS_RUNNING, value).apply();
+    }
+
+    /** Whether disconnecting pauses (keeps the ports, refusing connections) rather than stops; on by default. */
+    boolean isKeepPorts() {
+        return sp.getBoolean(KEEP_PORTS, true);
+    }
+
+    void setKeepPorts(boolean value) {
+        sp.edit().putBoolean(KEEP_PORTS, value).apply();
+    }
+
+    /** Whether the user last left the proxy paused: kept after a process restart or a reboot. */
+    boolean wantsPaused() {
+        return sp.getBoolean(WANTS_PAUSED, false);
+    }
+
+    void setWantsPaused(boolean value) {
+        sp.edit().putBoolean(WANTS_PAUSED, value).apply();
     }
 
     boolean hasAskedForNotifications() {

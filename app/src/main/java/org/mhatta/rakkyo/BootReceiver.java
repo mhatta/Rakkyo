@@ -5,7 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * Starts the proxy when the device has booted, if the user asked for it.
+ * Starts the proxy when the device has booted, if the user asked for it,
+ * or pauses it again (holding the ports) if it was left paused.
  * Android 15 forbids starting some foreground service types from
  * BOOT_COMPLETED (dataSync among them), but not specialUse.
  */
@@ -15,8 +16,12 @@ public final class BootReceiver extends BroadcastReceiver {
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             return;
         }
-        if (new Prefs(context).isStartOnBoot()) {
+        final Prefs prefs = new Prefs(context);
+        if (prefs.isStartOnBoot()) {
             TorService.start(context);
+        } else if (prefs.wantsPaused() && prefs.isKeepPorts()) {
+            // Left paused: hold the ports again before another app can.
+            TorService.pause(context);
         }
     }
 }

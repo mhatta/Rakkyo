@@ -68,12 +68,25 @@ final class Notifications {
             }
             b.addAction(new Notification.Action.Builder(null, context.getString(R.string.new_identity),
                     service(context, TorService.ACTION_NEW_IDENTITY, 1)).build());
+        } else if (status.state == TorController.State.PAUSED) {
+            b.setContentTitle(context.getString(R.string.notification_paused));
+            b.setContentText(context.getString(R.string.notification_paused_text));
+            b.addAction(new Notification.Action.Builder(null, context.getString(R.string.action_connect),
+                    service(context, TorService.ACTION_START, 3)).build());
+            b.addAction(new Notification.Action.Builder(null, context.getString(R.string.action_close_ports),
+                    service(context, TorService.ACTION_STOP, 2)).build());
+            return b.build();
         } else {
             b.setContentTitle(context.getString(R.string.notification_starting, status.percent));
             b.setProgress(100, status.percent, false);
         }
-        b.addAction(new Notification.Action.Builder(null, context.getString(R.string.action_stop),
-                service(context, TorService.ACTION_STOP, 2)).build());
+        if (new Prefs(context).isKeepPorts()) {
+            b.addAction(new Notification.Action.Builder(null, context.getString(R.string.action_disconnect),
+                    service(context, TorService.ACTION_PAUSE, 4)).build());
+        } else {
+            b.addAction(new Notification.Action.Builder(null, context.getString(R.string.action_stop),
+                    service(context, TorService.ACTION_STOP, 2)).build());
+        }
         return b.build();
     }
 
