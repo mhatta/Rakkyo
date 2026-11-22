@@ -1,6 +1,7 @@
 package org.mhatta.rakkyo;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -241,9 +242,16 @@ public final class MainActivity extends Activity implements TorController.Listen
         startActivity(new Intent(this, GuideActivity.class));
     }
 
-    /** Android 12 and older (see updateBackCallback). */
+    /*
+     * Android 12 and older only.  From Android 13 on, Back goes to the
+     * OnBackInvokedCallback of updateBackCallback(), since the manifest sets
+     * enableOnBackInvokedCallback, and this is not called; lint's
+     * GestureBackNavigation does not see that, and asks for AndroidX's
+     * OnBackPressedDispatcher, which would add AndroidX for this alone.
+     */
     @Override
     @SuppressWarnings("deprecation")
+    @SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         if (tab != TAB_HOME) {
             showTab(TAB_HOME);
