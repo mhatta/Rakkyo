@@ -1,6 +1,7 @@
 package org.mhatta.rakkyo;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,6 +12,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 /**
  * The three tabs of the mock-up (Home, Circuits, Settings) in one activity,
@@ -33,6 +36,9 @@ public final class MainActivity extends Activity implements TorController.Listen
     private final Page[] pages = new Page[3];
     private int tab = -1;
     private boolean started;
+    /** A BackToHome, registered while a tab other than Home is shown (Android 13+). */
+    private Object backCallback;
+    private boolean backRegistered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +126,53 @@ public final class MainActivity extends Activity implements TorController.Listen
         if (started) {
             pages[tab].onShown();
         }
+        updateBackCallback();
+    }
+
+    /*
+     * Back on another tab goes to Home; on Home, it leaves the app, with
+     * the system's predictive animation.  So the callback is registered
+     * only while it has something to do: a registered callback would stop
+     * the animation on Home too.  Android 13+ calls these callbacks instead
+     * of onBackPressed() (enableOnBackInvokedCallback in the manifest, the
+     * default with targetSdk 36 on Android 16); older versions call
+     * onBackPressed().
+     */
+    private void updateBackCallback() {
+        if (Build.VERSION.SDK_INT < 33) {
+            return;
+        }
+        final boolean wanted = tab != TAB_HOME;
+        if (wanted == backRegistered) {
+            return;
+        }
+        if (backCallback == null) {
+            backCallback = new BackToHome(this);
+        }
+        BackToHome.register(this, (BackToHome) backCallback, wanted);
+        backRegistered = wanted;
+    }
+
+    @TargetApi(33)
+    private static final class BackToHome implements OnBackInvokedCallback {
+        private final MainActivity activity;
+
+        BackToHome(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        public void onBackInvoked() {
+            activity.showTab(TAB_HOME);
+        }
+
+        static void register(Activity activity, BackToHome callback, boolean register) {
+            final OnBackInvokedDispatcher dispatcher = activity.getOnBackInvokedDispatcher();
+            if (register) {
+                dispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback);
+            } else {
+                dispatcher.unregisterOnBackInvokedCallback(callback);
+            }
+        }
     }
 
     private Page createPage(int which) {
@@ -158,6 +211,7 @@ public final class MainActivity extends Activity implements TorController.Listen
         startActivity(new Intent(this, GuideActivity.class));
     }
 
+    /** Android 12 and older (see updateBackCallback). */
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {

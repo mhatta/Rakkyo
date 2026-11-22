@@ -4,13 +4,13 @@ plugins {
 
 android {
     namespace = 'org.mhatta.rakkyo'
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = 'org.mhatta.rakkyo'
         // Orchid's minimum (X509ExtendedTrustManager, endpoint identification)
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = '1.0.0'
     }
