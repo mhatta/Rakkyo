@@ -89,6 +89,25 @@ says which artifact did not match (CI keeps it as an artifact).
 Do not work around a failure with `--dependency-verification=off` or
 `lenient`.
 
+## Verifying a release
+
+Release APKs on GitHub are signed by the developer, with APK Signature
+Scheme v2 and v3.  The SHA-256 of the signing certificate is:
+
+```
+dce02131fc9e7ba250380fbd477211d169fe756f22740aa6e8f43a2ee7dbd2db
+```
+
+```sh
+apksigner verify --print-certs Rakkyo-1.1.0.apk   # "certificate SHA-256 digest"
+sha256sum -c SHA256SUMS && gpg --verify SHA256SUMS.asc SHA256SUMS
+```
+
+Builds are meant to be reproducible: the unsigned APK built from a
+release tag with `./gradlew assembleRelease` should be identical to the
+release APK without its signature.  The release notes give the JDK and
+build-tools used, and the SHA-256 of the unsigned APK.
+
 ## GeoIP database
 
 `app/src/main/resources/com/subgraph/orchid/geoip/geoip` is Tor's
