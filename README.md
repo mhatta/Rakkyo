@@ -1,4 +1,9 @@
 # Rakkyo
+[![Android](https://github.com/mhatta/Rakkyo/actions/workflows/android.yml/badge.svg)](https://github.com/mhatta/Rakkyo/actions/workflows/android.yml)
+[![Release](https://img.shields.io/github/v/release/mhatta/Rakkyo)](https://github.com/mhatta/Rakkyo/releases/latest)
+[![Android 7.0+](https://img.shields.io/badge/Android-7.0%2B%20(API%2024)-3DDC84)](#)
+[![Orchid](https://img.shields.io/maven-central/v/org.mhatta/orchid?label=Orchid)](https://github.com/mhatta/Orchid)
+[![License](https://img.shields.io/github/license/mhatta/Rakkyo)](LICENSE)
 
 Rakkyo is an Android app that runs a local proxy through the Tor™ network.
 Other apps on the device connect to it with SOCKS5 or HTTP CONNECT.
