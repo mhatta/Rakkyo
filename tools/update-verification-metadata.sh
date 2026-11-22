@@ -5,6 +5,7 @@
 #
 #     tools/update-verification-metadata.sh            # the tasks CI and releases run
 #     tools/update-verification-metadata.sh lintRelease  # and more tasks
+#     REUSE_CACHE=1 tools/update-verification-metadata.sh  # faster, see below
 #
 # Gradle adds a checksum for every new artifact, and a trusted key for every
 # new signing key: it trusts what it downloads now.  The review is what makes
@@ -21,8 +22,19 @@ ORCHID_KEY=643CD2E8DDCB00F8F158121BDDAE12626E141035
 
 tasks="testDebugUnitTest lintDebug assembleDebug assembleRelease $*"
 
+# As on CI: an empty Gradle home, so that nothing is taken from the cache
+# without being downloaded (and so recorded), and --rerun-tasks, so that
+# every task runs and resolves what it needs: aapt2, for one, is fetched
+# by the tasks that run it, which an up-to-date build skips.  This
+# downloads everything, which takes a few minutes; REUSE_CACHE=1 keeps
+# the usual Gradle home, and may then miss artifacts.
+if [ -z "${REUSE_CACHE:-}" ]; then
+    GRADLE_USER_HOME=$(mktemp -d)
+    export GRADLE_USER_HOME
+fi
+
 before=$(mktemp)
-trap 'rm -f "$before"' EXIT
+trap 'rm -f "$before"; [ -z "${REUSE_CACHE:-}" ] && rm -rf "$GRADLE_USER_HOME"' EXIT
 cp "$META" "$before"
 
 # The keys are exported as text only ($KEYS), which a diff can show; not
@@ -37,7 +49,7 @@ fi
 # a failing task (a lint error, a test) must not stop the tasks after it
 # from resolving their dependencies, or the metadata would miss them.
 status=0
-./gradlew --no-daemon --continue --write-verification-metadata pgp,sha256 --export-keys $tasks || status=$?
+./gradlew --no-daemon --continue --rerun-tasks --write-verification-metadata pgp,sha256 --export-keys $tasks || status=$?
 rm -f gradle/verification-keyring.gpg
 
 echo

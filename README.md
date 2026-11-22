@@ -69,9 +69,20 @@ tools/update-verification-metadata.sh
 git diff -- gradle/verification-metadata.xml gradle/verification-keyring.keys
 ```
 
-The script runs the tasks that CI and releases run, lists the keys and
-components that are new, and checks that Orchid is still trusted by its
-key alone.  Gradle trusts whatever it downloads at that moment, so read
+The script runs the tasks that CI and releases run, as CI does: with an
+empty Gradle home and every task run again (`--rerun-tasks`), so that
+nothing is missed because it was in the cache or a task was up to date.
+It lists the keys and components that are new, and checks that Orchid is
+still trusted by its key alone.  It downloads everything, which takes a
+few minutes.
+
+aapt2 comes in one jar for each system.  To build in Android Studio on
+Windows, add the Windows one once, from a Windows command prompt:
+
+```bat
+gradlew.bat --no-daemon --rerun-tasks --write-verification-metadata sha256 assembleDebug
+```
+  Gradle trusts whatever it downloads at that moment, so read
 the list: a new key or group should be one that the change explains.
 When a build fails verification, `build/reports/dependency-verification/`
 says which artifact did not match (CI keeps it as an artifact).
