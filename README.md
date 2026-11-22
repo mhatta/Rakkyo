@@ -40,6 +40,32 @@ against a local checkout of Orchid instead (to change both at once):
 ./gradlew -Porchid.dir=../Orchid assembleDebug
 ```
 
+### Dependency verification
+
+Gradle checks every dependency and plugin it downloads against
+`gradle/verification-metadata.xml`, and fails the build on a mismatch.
+Orchid must be signed by its maintainer's key (any version); Google's
+artifacts by Google's key; the rest have SHA-256 checksums.  The public
+keys are in `gradle/verification-keyring.keys`, so that no key server is
+needed.  Android Studio's sources and javadoc jars are not checked.
+
+After changing a dependency, the Android Gradle plugin or Gradle itself
+(also on a Dependabot pull request, whose build fails until this is done):
+
+```sh
+tools/update-verification-metadata.sh
+git diff -- gradle/verification-metadata.xml gradle/verification-keyring.keys
+```
+
+The script runs the tasks that CI and releases run, lists the keys and
+components that are new, and checks that Orchid is still trusted by its
+key alone.  Gradle trusts whatever it downloads at that moment, so read
+the list: a new key or group should be one that the change explains.
+When a build fails verification, `build/reports/dependency-verification/`
+says which artifact did not match (CI keeps it as an artifact).
+Do not work around a failure with `--dependency-verification=off` or
+`lenient`.
+
 ## GeoIP database
 
 `app/src/main/resources/com/subgraph/orchid/geoip/geoip` is Tor's

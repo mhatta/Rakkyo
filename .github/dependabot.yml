@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+  # A Gradle update fails CI until tools/update-verification-metadata.sh
+  # has been run on its branch and the result reviewed (README, "Dependency
+  # verification").
   - package-ecosystem: gradle
     directory: /
     schedule:

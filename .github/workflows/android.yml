@@ -20,8 +20,11 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
       # The runner image has the Android SDK; Gradle installs the platform it needs.
-      - name: Unit tests, lint, debug APK
-        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      # Every download is checked against gradle/verification-metadata.xml.
+      # assembleRelease too, so that what a release needs is checked here
+      # before the release.
+      - name: Unit tests, lint, debug and release APKs
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleRelease
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: rakkyo-debug
@@ -32,4 +35,11 @@ jobs:
         with:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
+          retention-days: 14
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: failure()
+        with:
+          name: dependency-verification-report
+          path: build/reports/dependency-verification/
+          if-no-files-found: ignore
           retention-days: 14
