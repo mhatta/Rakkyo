@@ -3,8 +3,10 @@
 <p>Rakkyo is built on <a href="https://github.com/mhatta/Orchid">Orchid</a>, a Tor client written in Java. It needs no native code, no root and no VPN slot.</p>
 
 <ul>
-<li>SOCKS5 proxy on 127.0.0.1 (port 9150 by default) and HTTP CONNECT proxy (port 8118)</li>
-<li>Optional random password, so that only the apps you give it to can connect</li>
+<li>SOCKS5 proxy on 127.0.0.1 (port 9150 by default), and an HTTP CONNECT proxy for the Wi-Fi proxy setting (port 8118, off by default)</li>
+<li>A random password for each app, required by default: other apps on the device cannot use the proxy, and each app has circuits of its own</li>
+<li>While disconnected, the ports are kept and refuse connections, so that no other app can take them</li>
+<li>Warns when an app looks host names up outside Tor</li>
 <li>Separate circuits per destination host (IsolateDestAddr)</li>
 <li>New identity: new circuits for everything opened from then on</li>
 <li>Shows the circuits in use with the countries of their relays, from a GeoIP database bundled with the app and used only on the device</li>

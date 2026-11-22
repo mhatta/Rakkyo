@@ -1,0 +1,1 @@
+A password for each app, required by default. Disconnecting keeps the ports and refuses connections, so no other app can take them. Warns when an app looks host names up outside Tor. Passwords apply without reconnecting. Notifications are hidden on the lock screen. For Android 16. With Orchid 2.9.0.

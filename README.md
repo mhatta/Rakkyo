@@ -10,9 +10,16 @@ and there is another underneath, like onion routing.
 
 ## Features
 
-- SOCKS5 on `127.0.0.1:9150` and HTTP CONNECT on `127.0.0.1:8118` (both configurable)
-- Optional random password (SOCKS5 user name/password, `Proxy-Authorization`)
+- SOCKS5 on `127.0.0.1:9150`, and optionally HTTP CONNECT on
+  `127.0.0.1:8118` (for the Wi-Fi proxy setting); both configurable
+- A random password for each app (SOCKS5 user name/password,
+  `Proxy-Authorization`), required by default; each app has circuits of
+  its own
 - Circuits separated by destination host (Tor's IsolateDestAddr), on by default
+- While disconnected, the ports are kept and refuse connections, so that
+  no other app can take them
+- Warns when an app looks host names up outside Tor (gives only an IP
+  address); can refuse such connections (SafeSocks)
 - New identity (at most once every 10 seconds, as in Tor)
 - The circuits in use, with the country of each relay; entry guards on a
   screen that cannot be captured in screenshots
@@ -33,7 +40,7 @@ Requirements: JDK 17 or later, and the Android SDK (Android Studio, or
 ./gradlew lintDebug                # also fails on a missing translation
 ```
 
-Rakkyo depends on `org.mhatta:orchid:2.8.0` from Maven Central.  To build
+Rakkyo depends on `org.mhatta:orchid:2.9.0` from Maven Central.  To build
 against a local checkout of Orchid instead (to change both at once):
 
 ```sh
@@ -93,7 +100,22 @@ when a string is not translated.
 
 - The proxies listen on the loopback address only.
 - Nothing about relays, guards or traffic is logged, put in a notification
-  or exported to other apps; the service is not exported.
+  or exported to other apps; the service is not exported.  Release builds
+  write nothing of Orchid's to logcat.
+- The notifications are not shown on a secure lock screen, since they say
+  that Tor is in use.
+- The bridge lines and the guard details are kept out of screenshots and
+  the recent apps screen; the keyboard is asked not to learn the bridge
+  lines and ports, and a copied password is taken off the clipboard after
+  a minute.
+- Every app on the device can connect to the proxy.  By default it takes
+  only the passwords of the apps set up in Settings › Apps, one per app,
+  so that other apps can neither use it nor share an app's circuits; with
+  the password turned off (for the Wi-Fi proxy setting), any app can use
+  it and tell that Tor is in use.  The ports stay open while the proxy
+  restarts, and while it is disconnected (paused) unless that is turned
+  off, so that no other app can take them; they are closed when the proxy
+  fails to start or the user closes them.
 - The app's data, entry guards included, is excluded from backups and
   device transfers.
 - Rakkyo makes no network connections of its own besides Tor's.
