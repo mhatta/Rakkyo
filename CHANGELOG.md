@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 (unreleased)
+## 1.1.0 (2026-11-22)
 
 Privacy by default, with Orchid 2.9.0, for Android 16.  1.0.1 was not
 released; its fixes are here.
@@ -75,9 +75,15 @@ it was stopped.
   Orchid must be signed by its maintainer's key, and every other
   dependency and plugin match its key or checksum.
   `tools/update-verification-metadata.sh` updates it after a dependency
-  change and lists what is new for review.
+  change, as CI builds (an empty Gradle home, every task run), adds
+  aapt2 for Linux, Windows and macOS (which Gradle does not record), and
+  lists what is new for review.  The keys are kept as text in
+  `gradle/verification-keyring.keys`.
 - CI builds the release APK too; the GitHub Actions are pinned to
   commits, and Dependabot proposes updates.
+- Built with the Android Gradle plugin 8.13.2 on Gradle 8.14.3.  The
+  release APK is signed outside the build, with APK Signature Scheme v2
+  and v3.
 
 ## 1.0.0 (2026-11-21)
 
