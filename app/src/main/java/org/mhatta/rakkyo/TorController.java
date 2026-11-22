@@ -1,6 +1,9 @@
 package org.mhatta.rakkyo;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -105,6 +108,15 @@ final class TorController {
     /** Bumped for each client, so that callbacks of an old one are ignored. */
     private volatile int generation;
     private ConnectivityManager.NetworkCallback networkCallback;
+    /*
+     * The proxy ports, bound by Rakkyo and kept while the client restarts
+     * (Orchid's own ports would be closed by stop() and bound again by the
+     * next client, and in between any app could bind them, and receive
+     * the connections, host names and passwords meant for Tor).  Closed
+     * when the proxy stops or fails.  Control thread only.
+     */
+    private ServerSocket socksSocket;
+    private ServerSocket httpSocket;
 
     static synchronized TorController get(Context context) {
         if (instance == null) {
@@ -196,7 +208,27 @@ final class TorController {
 
         final BridgeLines.Result bridges = BridgeLines.parse(settings.bridges);
         if (settings.useBridges && (!bridges.isValid() || bridges.bridges.isEmpty())) {
+            closePorts();
             setStatus(new Status(State.FAILED, 0, false, Failure.BAD_BRIDGES, 0, null));
+            return;
+        }
+
+        // The ports first: a port that another app holds is found before
+        // Orchid starts, and one that Rakkyo already holds is kept.
+        int port = settings.socksPort;
+        try {
+            socksSocket = keepOrBind(socksSocket, settings.socksPort);
+            port = settings.httpPort;
+            if (settings.httpPort != 0) {
+                httpSocket = keepOrBind(httpSocket, settings.httpPort);
+            } else {
+                closeQuietly(httpSocket);
+                httpSocket = null;
+            }
+        } catch (IOException e) {
+            Log.w(TAG, "Cannot listen on port " + port + ": " + e.getMessage());
+            closePorts();
+            setStatus(new Status(State.FAILED, 0, false, Failure.PORT_IN_USE, port, null));
             return;
         }
 
@@ -248,35 +280,70 @@ final class TorController {
             Log.e(TAG, "Orchid failed to start", e);
             generation++;
             c.stop();
+            closePorts();
             setStatus(new Status(State.FAILED, 0, false, Failure.OTHER, 0, null));
             return;
         }
 
-        // The ports are bound after start(): stop() closes them only on a
-        // started client, so a port that cannot be bound would otherwise
-        // leave the other one open.
-        int port = settings.socksPort;
+        // Accepting only after start(): stop() stops a started client only.
         try {
-            c.enableSocksListener(port);
-            if (settings.httpPort != 0) {
-                port = settings.httpPort;
-                c.enableHttpTunnelListener(port);
+            c.enableSocksListener(socksSocket);
+            if (httpSocket != null) {
+                c.enableHttpTunnelListener(httpSocket);
             }
         } catch (RuntimeException e) {
             // TorException, or IllegalStateException if the client stopped meanwhile
-            Log.w(TAG, "Cannot listen on port " + port + ": " + e.getMessage());
+            Log.w(TAG, "Cannot accept on the proxy ports: " + e.getMessage());
             generation++;
             c.stop();
-            setStatus(new Status(State.FAILED, 0, false, Failure.PORT_IN_USE, port, null));
+            closePorts();
+            setStatus(new Status(State.FAILED, 0, false, Failure.OTHER, 0, null));
             return;
         }
         client = c;
         watchNetwork();
     }
 
+    /*
+     * The server socket for a port: the one already held if it is for that
+     * port, else a new one on the loopback address (the old one closed).
+     */
+    private static ServerSocket keepOrBind(ServerSocket held, int port) throws IOException {
+        if (held != null && !held.isClosed() && held.getLocalPort() == port) {
+            return held;
+        }
+        closeQuietly(held);
+        return new ServerSocket(port, 50, InetAddress.getByName(LISTEN_ADDRESS));
+    }
+
+    private void closePorts() {
+        closeQuietly(socksSocket);
+        closeQuietly(httpSocket);
+        socksSocket = null;
+        httpSocket = null;
+    }
+
+    private static void closeQuietly(ServerSocket s) {
+        if (s != null) {
+            try {
+                s.close();
+            } catch (IOException e) {
+                // closing anyway
+            }
+        }
+    }
+
+    /*
+     * With next STOPPING (a restart), the ports stay open for the next
+     * client, which takes them over; Orchid's stop() returns once the old
+     * client no longer accepts on them.  Otherwise they are closed.
+     */
     private void stopOnControlThread(State next, Failure failure, int failedPort) {
         final TorClient c = client;
         if (c == null) {
+            if (next != State.STOPPING) {
+                closePorts();
+            }
             if (status.state != next || failure != null) {
                 setStatus(new Status(next, 0, false, failure, failedPort, null));
             }
@@ -287,6 +354,9 @@ final class TorController {
         unwatchNetwork();
         setStatus(new Status(State.STOPPING, 0, false, null, 0, null));
         c.stop();
+        if (next != State.STOPPING) {
+            closePorts();
+        }
         setStatus(new Status(next, 0, false, failure, failedPort, null));
     }
 
