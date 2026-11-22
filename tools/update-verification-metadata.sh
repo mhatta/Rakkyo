@@ -25,10 +25,20 @@ before=$(mktemp)
 trap 'rm -f "$before"' EXIT
 cp "$META" "$before"
 
+# The keys are exported as text only ($KEYS), which a diff can show; not
+# also as the binary verification-keyring.gpg.
+if ! grep -q '<keyring-format>' "$META"; then
+    sed -i 's|^\( *\)<verify-signatures>true</verify-signatures>|&\n\1<keyring-format>armored</keyring-format>|' "$META"
+fi
+
 # pgp,sha256: a checksum even for signed artifacts, so that one whose key
 # cannot be fetched still verifies.  --export-keys writes the public keys
-# to $KEYS, so that builds (CI, F-Droid) need no key server.
-./gradlew --no-daemon --write-verification-metadata pgp,sha256 --export-keys $tasks
+# to $KEYS, so that builds (CI, F-Droid) need no key server.  --continue:
+# a failing task (a lint error, a test) must not stop the tasks after it
+# from resolving their dependencies, or the metadata would miss them.
+status=0
+./gradlew --no-daemon --continue --write-verification-metadata pgp,sha256 --export-keys $tasks || status=$?
+rm -f gradle/verification-keyring.gpg
 
 echo
 echo "== New or changed trusted keys (check each against the dependency it is for)"
@@ -53,4 +63,10 @@ if [ -f "$KEYS" ]; then
     git add -N "$KEYS" 2>/dev/null || true
 fi
 echo "Review:   git diff -- $META $KEYS"
+if [ "$status" -ne 0 ]; then
+    echo
+    echo "The build failed (above): fix it and run this again before committing," >&2
+    echo "since the tasks that failed may not have resolved all they need." >&2
+    exit "$status"
+fi
 echo "Commit:   git commit -m 'Update the dependency verification metadata' -- $META $KEYS"
