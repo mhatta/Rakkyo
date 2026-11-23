@@ -219,7 +219,9 @@
     <string name="onboarding_apps">アプリ</string>
     <string name="onboarding_wifi">Wi-Fi の設定</string>
     <string name="status_paused">休止中</string>
-    <string name="status_paused_detail">接続していません。ポート %s はほかのアプリに取られないよう確保したまま、すべての接続を断っています。</string>
+    <plurals name="status_paused_detail">
+        <item quantity="other">接続していません。ポート %s はほかのアプリに取られないよう確保したまま、すべての接続を断っています。</item>
+    </plurals>
     <string name="status_paused_detail_short">接続していません。ポートは確保したまま、すべての接続を断っています。</string>
     <string name="action_close_ports">ポートを閉じる</string>
     <string name="action_connect">接続</string>

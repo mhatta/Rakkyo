@@ -228,7 +228,10 @@
     <string name="onboarding_apps">Apps</string>
     <string name="onboarding_wifi">Wi-Fi setting</string>
     <string name="status_paused">Paused</string>
-    <string name="status_paused_detail">Not connected. Port %s is kept and refuses every connection, so that no other app can take it.</string>
+    <plurals name="status_paused_detail">
+        <item quantity="one">Not connected. Port %s is kept and refuses every connection, so that no other app can take it.</item>
+        <item quantity="other">Not connected. Ports %s are kept and refuse every connection, so that no other app can take them.</item>
+    </plurals>
     <string name="status_paused_detail_short">Not connected. The ports are kept and refuse every connection.</string>
     <string name="action_close_ports">Close the ports</string>
     <string name="action_connect">Connect</string>

@@ -231,7 +231,8 @@ final class HomePage extends MainActivity.Page {
             powerButton.setContentDescription(activity.getString(R.string.cd_power_connect));
             statusTitle.setText(R.string.status_paused);
             statusDetail.setText(s.settings == null ? activity.getString(R.string.status_paused_detail_short)
-                    : activity.getString(R.string.status_paused_detail, portsText(s.settings)));
+                    : activity.getResources().getQuantityString(R.plurals.status_paused_detail,
+                            portCount(s.settings), portsText(s.settings)));
             titleColor = R.color.text;
             break;
         case FAILED:
@@ -277,6 +278,10 @@ final class HomePage extends MainActivity.Page {
         UiUtil.show(passwordCopy, n > 0);
         UiUtil.show(chipIsolation, settings.isolateDest);
         UiUtil.show(chipBridges, settings.useBridges);
+    }
+
+    private static int portCount(Prefs.Snapshot settings) {
+        return settings.httpPort == 0 ? 1 : 2;
     }
 
     private static String portsText(Prefs.Snapshot settings) {
