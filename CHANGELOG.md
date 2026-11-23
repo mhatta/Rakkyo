@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1 (unreleased)
+
+- The release APK is built with R8, which removes the code and resources
+  the app does not use (F-Droid asks for it).  Nothing is renamed, so
+  stack traces read as before.
+- English: with the HTTP CONNECT port on, the paused status said "Port
+  9150, 8118 is kept"; it now says "Ports 9150, 8118 are kept".
+- Japanese: "user" is written ユーザ.
+
 ## 1.1.0 (2026-11-22)
 
 Privacy by default, with Orchid 2.9.0, for Android 16.  1.0.1 was not

@@ -2,7 +2,8 @@
 # https://gitlab.com/fdroid/fdroiddata (check it with `fdroid lint` and
 # `fdroid build -v -l org.mhatta.rakkyo` before sending; remove these
 # comments there, `fdroid rewritemeta` does).  The first submission has
-# only the latest version.
+# only the latest version.  In fdroiddata, `commit:` is the full hash of
+# the commit the tag points to (git rev-parse v1.1.1^{commit}).
 Categories:
   - VPN & Proxy
   - Security
@@ -19,9 +20,9 @@ RepoType: git
 Repo: https://github.com/mhatta/Rakkyo.git
 
 Builds:
-  - versionName: 1.1.0
-    versionCode: 2
-    commit: v1.1.0
+  - versionName: 1.1.1
+    versionCode: 3
+    commit: v1.1.1
     subdir: app
     gradle:
       - yes
@@ -33,5 +34,5 @@ AllowedAPKSigningKeys: dce02131fc9e7ba250380fbd477211d169fe756f22740aa6e8f43a2ee
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.1.0
-CurrentVersionCode: 2
+CurrentVersion: 1.1.1
+CurrentVersionCode: 3
