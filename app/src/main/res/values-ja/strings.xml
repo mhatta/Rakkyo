@@ -50,7 +50,7 @@
     <string name="cd_copy_http">HTTP のアドレスをコピー</string>
     <string name="cd_copy_password">パスワードをコピー</string>
     <string name="password_none">パスワード：なし。この端末のどのアプリもプロキシを使えます。</string>
-    <string name="password_set">パスワード：必須（ユーザー名は自由）</string>
+    <string name="password_set">パスワード：必須（ユーザ名は自由）</string>
     <string name="copied">コピーしました</string>
     <string name="clip_label_address">プロキシのアドレス</string>
     <string name="clip_label_password">プロキシのパスワード</string>
@@ -166,7 +166,7 @@
     <string name="guide_intro">アプリのプロキシ設定に、次のどちらかを入れます。どちらも、この端末の中からしか使えません。</string>
     <string name="guide_socks_title">SOCKS5 に対応したアプリ</string>
     <string name="guide_socks_body">ホスト %1$s、ポート %2$d を設定します。名前の解決をプロキシに任せる設定があれば有効にしてください。</string>
-    <string name="guide_socks_password">パスワードが必須です。ユーザー名は自由で、パスワードは設定 › アプリからコピーしてください。</string>
+    <string name="guide_socks_password">パスワードが必須です。ユーザ名は自由で、パスワードは設定 › アプリからコピーしてください。</string>
     <string name="guide_http_title">Wi-Fi のプロキシ設定（HTTP）</string>
     <string name="guide_http_body">設定 › ネットワーク › Wi-Fi › 使っているネットワーク › プロキシで「手動」を選び、ホスト名 %1$s、ポート %2$d を入れます。通るのは https:// のサイトだけです。モバイルデータやほかの Wi-Fi では Tor を通らずに直接つながり、この設定を無視するアプリもあります。</string>
     <string name="guide_http_off">HTTP CONNECT がオフです。使うには設定でオンにしてください。</string>
@@ -202,7 +202,7 @@
     <string name="profile_name_too_long">%d 文字以内にしてください。</string>
     <string name="profile_name_taken">その名前はすでに使っています。</string>
     <string name="profile_name_invalid">名前に制御文字は使えません。</string>
-    <string name="profile_added">%s のパスワードをコピーしました。そのアプリのプロキシ設定に、任意のユーザー名とともに貼り付けてください。</string>
+    <string name="profile_added">%s のパスワードをコピーしました。そのアプリのプロキシ設定に、任意のユーザ名とともに貼り付けてください。</string>
     <string name="profile_copy">パスワードをコピー</string>
     <string name="profile_renew">パスワードを作り直す</string>
     <string name="profile_renew_message">%s は、新しいパスワードを設定し直すまで接続できなくなります。</string>
@@ -212,7 +212,7 @@
     <string name="no_password_message">設定していないものも含め、この端末のすべてのアプリがプロキシとその回路を使えるようになり、Tor を使っていることも分かるようになります。Wi-Fi のプロキシ設定など、必要なアプリがパスワードを送れない場合にだけオフにしてください。</string>
     <string name="no_password_confirm">オフにする</string>
     <plurals name="password_profiles">
-        <item quantity="other">パスワード：%d 個のアプリごとに必須（ユーザー名は自由）</item>
+        <item quantity="other">パスワード：%d 個のアプリごとに必須（ユーザ名は自由）</item>
     </plurals>
     <string name="onboarding_title">どのアプリから Rakkyo を使いますか</string>
     <string name="onboarding_message">ブラウザやメッセンジャーなど、プロキシの設定があるアプリ：アプリごとに専用のパスワードを使い、端末のほかのアプリはプロキシを使えません。おすすめです。\n\nWi-Fi のプロキシ設定：パスワードを送れないので、パスワードなしにして HTTP CONNECT のポートを開きます。端末のどのアプリもプロキシを使え、Tor を使っていることも分かるようになります。\n\nあとから設定で変えられます。</string>
