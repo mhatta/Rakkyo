@@ -23,10 +23,13 @@ android {
 
     buildTypes {
         release {
-            // Kept off for now: it makes the release easier to reproduce
-            // (F-Droid) and to compare with the source.  The app has no
-            // dependency but Orchid, so shrinking would save little.
-            minifyEnabled = false
+            // R8 removes the code and resources the app does not use
+            // (F-Droid asks for it).  It does not rename anything: see
+            // proguard-rules.pro.  R8 is deterministic, so the release is
+            // still reproducible with the same JDK and Android Gradle Plugin.
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
