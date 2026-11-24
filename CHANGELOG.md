@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.1 (unreleased)
+## 1.1.1 (2026-11-24)
 
 - The release APK is built with R8, which removes the code and resources
   the app does not use (F-Droid asks for it).  Nothing is renamed, so
